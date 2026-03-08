@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ponce Demand Portal - Login</title>
+    <style>
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #111111;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            padding: 36px;
+            border-radius: 18px;
+            border: 1px solid #e8e1c8;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #b58b00;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            text-align: center;
+            font-size: 32px;
+            color: #111111;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666666;
+            margin-bottom: 28px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #222222;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+            border: 1px solid #d7c78d;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: 0.2s;
+            background: #fffdf8;
+        }
+
+        input:focus {
+            border-color: #c9a227;
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #111111;
+            color: #f5d76e;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">PONCE LAW</div>
+        <h1>Ponce Demand Portal</h1>
+        <p class="subtitle">Secure case access</p>
+
+        <form method="POST">
+            <label>Username</label>
+            <input type="text" name="username" required>
+
+            <label>Password</label>
+            <input type="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

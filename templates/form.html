@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ponce Demand Portal</title>
+    <style>
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { margin: 0; background: #ffffff; color: #111111; }
+        .topbar {
+            background: #0b0b0b;
+            color: white;
+            padding: 22px 40px;
+            border-bottom: 4px solid #c9a227;
+        }
+        .topbar h1 { margin: 0; font-size: 30px; color: #ffffff; }
+        .topbar p { margin: 6px 0 0 0; color: #e5d38a; font-size: 14px; }
+        .container { max-width: 1100px; margin: 32px auto; padding: 0 20px; }
+        .card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 32px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+            margin-bottom: 22px;
+            border: 1px solid #e8e1c8;
+        }
+        h2 { margin-top: 0; margin-bottom: 6px; color: #111111; }
+        .sub { color: #666666; margin-bottom: 24px; font-size: 14px; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .full { grid-column: 1 / -1; }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #1f1f1f;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d7c78d;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            background: #fffdf8;
+            color: #111111;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #c9a227;
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.18);
+        }
+        textarea { min-height: 110px; resize: vertical; }
+        .check-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding-top: 4px;
+        }
+        .check-item {
+            background: #fffaf0;
+            border: 1px solid #e6d69a;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .check-item input {
+            width: auto;
+            margin-right: 8px;
+        }
+        .bill-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+        .preview-box {
+            margin-top: 18px;
+            background: #fffaf0;
+            border: 1px solid #e6d69a;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .preview-title {
+            font-size: 13px;
+            color: #6a5a22;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .preview-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #111111;
+            margin-bottom: 10px;
+        }
+        .small-note {
+            font-size: 13px;
+            color: #555555;
+            line-height: 1.45;
+        }
+        .actions { margin-top: 28px; }
+        button {
+            padding: 14px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #111111;
+            color: #f5d76e;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        button:hover { background: #000000; }
+        @media (max-width: 800px) {
+            .grid, .bill-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>Ponce Demand Portal</h1>
+        <p>Professional demand letter workflow</p>
+    </div>
+
+    <div class="container">
+        <form action="/generate" method="post" id="demandForm">
+            <div class="card">
+                <h2>Basic Claim Info</h2>
+                <div class="grid">
+                    <div>
+                        <label>Adjuster Name</label>
+                        <input type="text" name="adjuster_name" required>
+                    </div>
+
+                    <div>
+                        <label>Client Name</label>
+                        <input type="text" name="client_name" required>
+                    </div>
+
+                    <div>
+                        <label>Collision Date (MM/DD/YYYY)</label>
+                        <input type="text" name="collision_date" placeholder="03/07/2026" required>
+                    </div>
+
+                    <div>
+                        <label>Demand Deadline</label>
+                        <input type="text" name="deadline" placeholder="03/20/2026 at 5:00 PM" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Facts of Loss</h2>
+
+                <div class="grid">
+                    <div>
+                        <label>Crash Type</label>
+                        <select name="crash_type" required>
+                            <option value="rear_end">Rear-end</option>
+                            <option value="left_turn">Left turn</option>
+                            <option value="lane_change">Lane change</option>
+                            <option value="red_light_stop_sign">Red light / stop sign</option>
+                            <option value="failure_to_yield">Failure to yield</option>
+                            <option value="parking_lot_backing">Parking lot / backing</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Collision Location / Intersection</label>
+                        <input type="text" name="location">
+                    </div>
+
+                    <div class="full">
+                        <label>What was the client doing?</label>
+                        <textarea name="client_action" placeholder="ex: was stopped at a red light" required></textarea>
+                    </div>
+
+                    <div class="full">
+                        <label>What did the at-fault driver do wrong?</label>
+                        <textarea name="defendant_action" placeholder="ex: failed to stop and rear-ended our client" required></textarea>
+                    </div>
+
+                    <div>
+                        <label>Point of impact on client vehicle</label>
+                        <input type="text" name="point_of_impact">
+                    </div>
+                </div>
+
+                <div class="check-grid" style="margin-top:18px;">
+                    <label class="check-item"><input type="checkbox" name="police_report" value="yes">Police Report</label>
+                    <label class="check-item"><input type="checkbox" name="citation" value="yes">Citation Issued</label>
+                    <label class="check-item"><input type="checkbox" name="witnesses" value="yes">Witnesses</label>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Treatment and Injuries</h2>
+
+                <div class="grid">
+                    <div class="full">
+                        <label>Main Symptoms / Injuries</label>
+                        <textarea name="symptoms" required></textarea>
+                    </div>
+
+                    <div class="full">
+                        <label>Treatment Received</label>
+                        <textarea name="treatment_types" placeholder="chiropractic care, imaging, PT" required></textarea>
+                    </div>
+
+                    <div class="full">
+                        <label>Extra Treatment Notes</label>
+                        <textarea name="treatment_notes"></textarea>
+                    </div>
+                </div>
+
+                <div class="check-grid" style="margin-top:18px;">
+                    <label class="check-item"><input type="checkbox" name="future_treatment" value="yes">Future Treatment Expected</label>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Medical Bills</h2>
+
+                <div class="bill-row">
+                    <div>
+                        <label>Provider 1</label>
+                        <input type="text" name="provider_name">
+                    </div>
+                    <div>
+                        <label>Amount 1</label>
+                        <input type="text" name="provider_amount">
+                    </div>
+                </div>
+
+                <div class="bill-row">
+                    <div>
+                        <label>Provider 2</label>
+                        <input type="text" name="provider_name">
+                    </div>
+                    <div>
+                        <label>Amount 2</label>
+                        <input type="text" name="provider_amount">
+                    </div>
+                </div>
+
+                <div class="bill-row">
+                    <div>
+                        <label>Provider 3</label>
+                        <input type="text" name="provider_name">
+                    </div>
+                    <div>
+                        <label>Amount 3</label>
+                        <input type="text" name="provider_amount">
+                    </div>
+                </div>
+
+                <div class="bill-row">
+                    <div>
+                        <label>Provider 4</label>
+                        <input type="text" name="provider_name">
+                    </div>
+                    <div>
+                        <label>Amount 4</label>
+                        <input type="text" name="provider_amount">
+                    </div>
+                </div>
+
+                <div class="bill-row">
+                    <div>
+                        <label>Provider 5</label>
+                        <input type="text" name="provider_name">
+                    </div>
+                    <div>
+                        <label>Amount 5</label>
+                        <input type="text" name="provider_amount">
+                    </div>
+                </div>
+
+                <div class="grid" style="margin-top:18px;">
+                    <div>
+                        <label>Lost Wages</label>
+                        <input type="text" name="lost_wages" id="lost_wages" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Non-Economic Damages</h2>
+
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" name="pain" value="yes">Ongoing Physical Pain</label>
+                    <label class="check-item"><input type="checkbox" name="sleep" value="yes">Sleep Disruption</label>
+                    <label class="check-item"><input type="checkbox" name="anxiety" value="yes">Anxiety / Emotional Distress</label>
+                    <label class="check-item"><input type="checkbox" name="chores" value="yes">Difficulty With Chores</label>
+                    <label class="check-item"><input type="checkbox" name="hobbies" value="yes">Difficulty With Hobbies / Exercise</label>
+                    <label class="check-item"><input type="checkbox" name="family_impact" value="yes">Impact on Family / Personal Life</label>
+                    <label class="check-item"><input type="checkbox" name="driving_fear" value="yes">Fear While Driving</label>
+                </div>
+
+                <div style="margin-top:18px;">
+                    <label>Extra Non-Economic Notes</label>
+                    <textarea name="non_econ_extra"></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Settlement</h2>
+
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" name="use_suggestion" value="yes" id="use_suggestion">Use Suggested Settlement</label>
+                    <label class="check-item"><input type="checkbox" name="policy_limit_demand" value="yes" id="policy_limit_demand">Policy Limit Demand</label>
+                </div>
+
+                <div class="grid" style="margin-top:18px;">
+                    <div>
+                        <label>Pain-and-Suffering Multiplier</label>
+                        <input type="text" name="multiplier" id="multiplier" placeholder="2.5">
+                    </div>
+
+                    <div>
+                        <label>Manual Settlement Amount</label>
+                        <input type="text" name="settlement_amount" id="settlement_amount" placeholder="25000">
+                    </div>
+
+                    <div>
+                        <label>Policy Limit Amount</label>
+                        <input type="text" name="policy_limit_amount" id="policy_limit_amount" placeholder="30000">
+                    </div>
+                </div>
+
+                <div class="preview-box">
+                    <div class="preview-title">Suggested Final Settlement</div>
+                    <div class="preview-value" id="suggestedPreview">$0.00</div>
+                    <div class="small-note">
+                        Damages estimate: medical expenses + lost wages + (medical expenses × multiplier). The multiplier adds a pain-and-suffering component based on the medical treatment and overall impact of the injuries.
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit">Generate Demand Letter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function parseMoney(value) {
+            if (!value) return 0;
+            value = String(value).replace(/\$/g, '').replace(/,/g, '').trim();
+            const num = parseFloat(value);
+            return isNaN(num) ? 0 : num;
+        }
+
+        function formatMoney(num) {
+            return num.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            });
+        }
+
+        function updateSuggestedSettlement() {
+            const useSuggestion = document.getElementById('use_suggestion').checked;
+            const policyLimitDemand = document.getElementById('policy_limit_demand').checked;
+
+            const lostWages = parseMoney(document.getElementById('lost_wages').value);
+            const multiplier = parseFloat(document.getElementById('multiplier').value) || 0;
+            const manualAmount = parseMoney(document.getElementById('settlement_amount').value);
+            const policyLimitAmount = parseMoney(document.getElementById('policy_limit_amount').value);
+
+            const providerAmounts = document.querySelectorAll('input[name="provider_amount"]');
+            let medTotal = 0;
+            providerAmounts.forEach(input => {
+                medTotal += parseMoney(input.value);
+            });
+
+            let result = 0;
+
+            if (policyLimitDemand) {
+                result = policyLimitAmount;
+            } else if (useSuggestion && multiplier > 0) {
+                result = (medTotal + lostWages) + (medTotal * multiplier);
+            } else {
+                result = manualAmount;
+            }
+
+            document.getElementById('suggestedPreview').textContent = formatMoney(result);
+        }
+
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('input', updateSuggestedSettlement);
+            el.addEventListener('change', updateSuggestedSettlement);
+        });
+
+        updateSuggestedSettlement();
+    </script>
+</body>
+</html>
