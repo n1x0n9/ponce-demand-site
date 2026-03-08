@@ -5,26 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ponce Demand Portal</title>
   <style>
+    :root {
+      --bg: #f7f7f5;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --gold: #c9a227;
+      --gold-dark: #9d7b12;
+      --navy: #0f172a;
+      --navy-2: #1e293b;
+      --soft: #fafaf9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
       margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(201,162,39,0.10), transparent 28%),
+        linear-gradient(180deg, #f8f8f6 0%, #f2f2ef 100%);
+      color: var(--text);
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 36px 20px;
     }
 
     .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: #ffffff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      max-width: 1080px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid rgba(201,162,39,0.22);
+      border-radius: 22px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+      overflow: hidden;
     }
 
-    h1 {
-      margin-top: 0;
-      margin-bottom: 25px;
-      color: #1f2937;
+    .header {
+      padding: 28px 34px 20px;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+      color: #fff;
+      border-bottom: 4px solid var(--gold);
+    }
+
+    .brand {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f3d46a;
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 42px;
+      line-height: 1.05;
+      font-weight: 800;
+    }
+
+    .header p {
+      margin: 10px 0 0;
+      color: rgba(255,255,255,0.82);
+      font-size: 15px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      padding: 30px 34px 34px;
+      background: linear-gradient(180deg, #fff 0%, #fcfcfb 100%);
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
+    }
+
+    .panel h2 {
+      margin: 0 0 18px;
+      font-size: 21px;
+      color: var(--navy);
     }
 
     .form-group {
@@ -33,99 +103,236 @@
 
     label {
       display: block;
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 8px;
       color: #374151;
+      font-size: 15px;
     }
 
     input[type="text"],
     textarea {
       width: 100%;
-      padding: 12px;
+      padding: 14px 15px;
       border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 14px;
-      box-sizing: border-box;
+      border-radius: 12px;
+      font-size: 15px;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    input[readonly] {
-      background: #f9fafb;
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(201,162,39,0.15);
+    }
+
+    textarea {
+      min-height: 360px;
+      resize: vertical;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .checkbox-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft);
     }
 
     input[type="checkbox"] {
-      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--gold-dark);
+    }
+
+    .checkbox-text {
+      font-weight: 700;
+      color: #374151;
+      font-size: 15px;
+    }
+
+    .preview-box {
+      background: linear-gradient(180deg, #fffdf7 0%, #f9f6ea 100%);
+      border: 1px solid rgba(201,162,39,0.45);
+      border-left: 6px solid var(--gold);
+      border-radius: 14px;
+      padding: 16px;
+      color: #2b2b2b;
+      font-size: 17px;
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .preview-help {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .button-row {
+      margin-top: 22px;
     }
 
     button {
-      background: #111827;
+      background: linear-gradient(135deg, var(--navy) 0%, #111827 100%);
       color: white;
       border: none;
-      padding: 12px 18px;
-      border-radius: 8px;
-      font-size: 14px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
 
     button:hover {
-      background: #1f2937;
+      transform: translateY(-1px);
+      box-shadow: 0 14px 24px rgba(15, 23, 42, 0.22);
     }
 
-    .output {
-      margin-top: 30px;
+    .letter-shell {
+      background: linear-gradient(180deg, #fff 0%, #fcfcfb 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      min-height: 100%;
     }
 
-    .output textarea {
-      min-height: 320px;
-      white-space: pre-wrap;
+    .letter-title {
+      margin: 0 0 12px;
+      font-size: 20px;
+      color: var(--navy);
+      font-weight: 800;
+    }
+
+    .letter-subtitle {
+      margin: 0 0 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      border: 2px dashed rgba(201,162,39,0.45);
+      background: #fffdf8;
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 34px;
+      }
+
+      .container {
+        border-radius: 18px;
+      }
+
+      .content,
+      .header {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Ponce Demand Portal</h1>
-
-    <form method="POST">
-      <div class="form-group">
-        <label for="recipient_name">Recipient Name</label>
-        <input type="text" id="recipient_name" name="recipient_name" placeholder="Bob Adjuster">
+  <div class="page">
+    <div class="container">
+      <div class="header">
+        <div class="brand">Texas Ponce Law, PLLC</div>
+        <h1>Ponce Demand Portal</h1>
+        <p>Generate polished settlement demand letters with the correct policy limits workflow.</p>
       </div>
 
-      <div class="form-group">
-        <label for="client_name">Client Name</label>
-        <input type="text" id="client_name" name="client_name" placeholder="Billy Client">
+      <div class="content">
+        <div class="panel">
+          <h2>Claim Information</h2>
+
+          <form method="POST">
+            <div class="form-group">
+              <label for="recipient_name">Recipient Name</label>
+              <input type="text" id="recipient_name" name="recipient_name" placeholder="Bob Adjuster">
+            </div>
+
+            <div class="form-group">
+              <label for="client_name">Client Name</label>
+              <input type="text" id="client_name" name="client_name" placeholder="Billy Client">
+            </div>
+
+            <div class="form-group">
+              <label for="loss_date">Loss Date</label>
+              <input type="text" id="loss_date" name="loss_date" placeholder="01/02/2024">
+            </div>
+
+            <div class="form-group">
+              <div class="checkbox-card">
+                <input
+                  type="checkbox"
+                  id="policy_limit_demand"
+                  name="policy_limit_demand"
+                  {% if policy_limit_checked %}checked{% endif %}
+                >
+                <label for="policy_limit_demand" class="checkbox-text" style="margin:0;">
+                  Policy Limit Demand
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group" id="settlement_amount_group">
+              <label for="settlement_amount">Settlement Amount</label>
+              <input
+                type="text"
+                id="settlement_amount"
+                name="settlement_amount"
+                placeholder="$25,000.00"
+                value="{{ settlement_amount_value or '' }}"
+              >
+            </div>
+
+            <div class="form-group">
+              <label>Demand Preview</label>
+              <div class="preview-box" id="demand_preview">{{ settlement_preview or "Settlement Demand" }}</div>
+              <div class="preview-help">
+                Damages estimate: medical expenses + lost wages + (medical expenses × multiplier). The multiplier reflects pain, suffering, and overall life impact. If Policy Limit Demand is selected, the letter requests tender of all available policy limits instead of a specific dollar amount.
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button type="submit">Generate Letter</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="letter-shell">
+          <h2 class="letter-title">Generated Letter</h2>
+          <p class="letter-subtitle">Review the generated demand letter before exporting or copying it.</p>
+
+          {% if generated_letter %}
+            <textarea readonly>{{ generated_letter }}</textarea>
+          {% else %}
+            <div class="empty-state">
+              Your demand letter preview will appear here after you submit the claim information.
+            </div>
+          {% endif %}
+        </div>
       </div>
-
-      <div class="form-group">
-        <label for="loss_date">Loss Date</label>
-        <input type="text" id="loss_date" name="loss_date" placeholder="01/02/2024">
-      </div>
-
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="policy_limit_demand" name="policy_limit_demand">
-          Policy Limit Demand
-        </label>
-      </div>
-
-      <div class="form-group" id="settlement_amount_group">
-        <label for="settlement_amount">Settlement Amount</label>
-        <input type="text" id="settlement_amount" name="settlement_amount" placeholder="$25,000.00">
-      </div>
-
-      <div class="form-group">
-        <label for="demand_preview">Demand Preview</label>
-        <input type="text" id="demand_preview" readonly value="{{ demand_type or 'Settlement Demand' }}">
-      </div>
-
-      <button type="submit">Generate Letter</button>
-    </form>
-
-    {% if generated_letter %}
-    <div class="output">
-      <h2>Generated Letter</h2>
-      <textarea readonly>{{ generated_letter }}</textarea>
     </div>
-    {% endif %}
   </div>
 
   <script>
@@ -140,10 +347,10 @@
       if (policyLimitCheckbox.checked) {
         settlementGroup.style.display = 'none';
         settlementInput.value = '';
-        demandPreview.value = 'Policy Limits Demand';
+        demandPreview.textContent = 'Policy Limits Demand';
       } else {
         settlementGroup.style.display = 'block';
-        demandPreview.value = 'Settlement Demand';
+        demandPreview.textContent = 'Settlement Demand';
       }
     }
 
