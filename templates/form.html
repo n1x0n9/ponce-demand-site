@@ -1,496 +1,799 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ponce Demand Portal</title>
   <style>
     :root {
-      --bg: #f7f6f2;
-      --card: #ffffff;
-      --text: #182033;
-      --muted: #667085;
-      --line: #e4e7ec;
       --gold: #c9a227;
-      --gold-soft: rgba(201, 162, 39, 0.15);
-      --navy: #0f1b35;
-      --navy-2: #152447;
-      --soft: #fbfbf9;
+      --gold-soft: #e3c968;
+      --gold-dark: #9f7f1c;
+      --black: #090909;
+      --charcoal: #171717;
+      --white: #ffffff;
+      --offwhite: #f8f7f4;
+      --gray-1: #f3f3f3;
+      --gray-2: #dfdfdf;
+      --gray-3: #6a6a6a;
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.10);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(201,162,39,0.10), transparent 24%),
-        linear-gradient(180deg, #f7f6f2 0%, #f3f1ec 100%);
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #f3f1eb 0%, #f9f8f5 100%);
+      color: #111;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, #050505 0%, #101010 100%);
+      color: var(--white);
+      padding: 34px 24px 56px;
+      border-bottom: 4px solid var(--gold);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .brand-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .eyebrow {
+      color: var(--gold-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 52px;
+      line-height: 1.02;
+      font-weight: 500;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: rgba(255,255,255,0.82);
+      font-size: 16px;
+      max-width: 760px;
+      line-height: 1.6;
+    }
+
+    .hero-pill {
+      background: rgba(255,255,255,0.08);
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
     }
 
     .page {
-      min-height: 100vh;
-      padding: 36px 18px;
+      max-width: 1180px;
+      margin: -28px auto 0;
+      padding: 0 20px 70px;
     }
 
-    .container {
-      max-width: 1220px;
-      margin: 0 auto;
-      background: var(--card);
-      border-radius: 24px;
-      overflow: hidden;
-      border: 1px solid rgba(201,162,39,0.25);
-      box-shadow: 0 24px 60px rgba(15, 27, 53, 0.10);
-    }
-
-    .header {
-      padding: 26px 34px 18px;
-      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
-      border-bottom: 4px solid var(--gold);
-      color: white;
-    }
-
-    .brand {
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #f0cd58;
-      margin-bottom: 8px;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 42px;
-      line-height: 1.05;
-      font-weight: 800;
-    }
-
-    .header p {
-      margin: 10px 0 0;
-      color: rgba(255,255,255,0.84);
-      font-size: 15px;
-    }
-
-    .content {
+    .summary-strip {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 22px;
-      padding: 24px;
-      background: linear-gradient(180deg, #fff 0%, #fcfcfa 100%);
-    }
-
-    .panel,
-    .letter-shell {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 10px 24px rgba(15, 27, 53, 0.04);
-    }
-
-    .panel h2,
-    .letter-title {
-      margin: 0 0 14px;
-      font-size: 20px;
-      color: var(--navy);
-      font-weight: 800;
-    }
-
-    .letter-subtitle {
-      margin: 0 0 14px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(4, 1fr);
       gap: 14px;
+      margin-bottom: 22px;
     }
 
-    .full-width {
-      grid-column: 1 / -1;
+    .summary-card {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow);
     }
 
-    .form-group {
-      margin-bottom: 14px;
+    .summary-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gray-3);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .summary-card .value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--black);
+    }
+
+    .layout {
+      display: block;
+    }
+
+    .section {
+      background: rgba(255,255,255,0.95);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-left: 7px solid var(--gold);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .section h2 {
+      margin: 0 0 16px;
+      font-size: 23px;
+      color: var(--black);
+    }
+
+    .section-subtext {
+      color: var(--gray-3);
+      font-size: 14px;
+      margin-top: -8px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
     }
 
     label {
       display: block;
-      font-size: 14px;
+      margin-bottom: 8px;
       font-weight: 700;
-      margin-bottom: 7px;
-      color: #344054;
+      font-size: 14px;
+      color: #101010;
     }
 
     input[type="text"],
     input[type="number"],
     textarea {
       width: 100%;
-      border: 1px solid #d0d5dd;
-      border-radius: 12px;
-      padding: 13px 14px;
+      border: 1px solid #d9d7d1;
+      border-radius: 16px;
+      padding: 15px 16px;
       font-size: 15px;
-      color: var(--text);
-      background: white;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      background: #fff;
+      color: var(--black);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.08s ease;
+      outline: none;
     }
 
     input[type="text"]:focus,
     input[type="number"]:focus,
     textarea:focus {
-      outline: none;
       border-color: var(--gold);
-      box-shadow: 0 0 0 4px var(--gold-soft);
+      box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.14);
     }
 
     textarea {
-      min-height: 120px;
+      min-height: 128px;
       resize: vertical;
-      line-height: 1.55;
-      white-space: pre-wrap;
-    }
-
-    .checkbox-card {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 13px 14px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--soft);
-      margin-bottom: 10px;
-    }
-
-    .checkbox-card input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      margin: 0;
-      accent-color: #a57f12;
-    }
-
-    .checkbox-card label {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .preview-box {
-      background: linear-gradient(180deg, #fffdf7 0%, #f8f3e4 100%);
-      border: 1px solid rgba(201,162,39,0.50);
-      border-left: 6px solid var(--gold);
-      border-radius: 14px;
-      padding: 14px 16px;
-      font-size: 18px;
-      font-weight: 800;
-      color: #2a2a2a;
-    }
-
-    .suggested-box {
-      margin-top: 10px;
-      background: #f8fafc;
-      border: 1px solid #dbe3ee;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 14px;
-      color: #334155;
-    }
-
-    .suggested-label {
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 4px;
-    }
-
-    .suggested-value {
-      font-size: 20px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .preview-help {
-      margin-top: 10px;
-      font-size: 13px;
-      line-height: 1.55;
-      color: var(--muted);
-    }
-
-    .button-row {
-      margin-top: 18px;
-    }
-
-    button {
-      background: linear-gradient(135deg, var(--navy) 0%, #101828 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 14px 22px;
-      font-size: 15px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 12px 24px rgba(15, 27, 53, 0.18);
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 16px 28px rgba(15, 27, 53, 0.22);
-    }
-
-    .letter-shell textarea {
-      min-height: 620px;
-    }
-
-    .empty-state {
-      border: 2px dashed rgba(201,162,39,0.45);
-      background: #fffdf8;
-      border-radius: 16px;
-      padding: 26px 18px;
-      text-align: center;
-      color: var(--muted);
       line-height: 1.6;
     }
 
-    @media (max-width: 1050px) {
-      .content {
-        grid-template-columns: 1fr;
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .hint {
+      margin-top: 8px;
+      color: var(--gray-3);
+      font-size: 13px;
+    }
+
+    .provider-row {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .provider-actions {
+      margin-top: 8px;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-dark {
+      background: var(--black);
+      color: var(--white);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.14);
+    }
+
+    .btn-dark:hover {
+      background: #1a1a1a;
+    }
+
+    .btn-gold {
+      background: linear-gradient(180deg, #e3c968 0%, #c9a227 100%);
+      color: var(--black);
+      box-shadow: 0 10px 18px rgba(201,162,39,0.22);
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(180deg, #ebd47a 0%, #d0aa31 100%);
+    }
+
+    .btn-danger {
+      background: #fff1f1;
+      color: #b42318;
+      border: 1px solid #f3b8b8;
+      padding: 12px 14px;
+    }
+
+    .calc-box {
+      margin-top: 16px;
+      background: linear-gradient(180deg, #fcfbf7 0%, #f7f4ea 100%);
+      border: 1px solid #e6dfc3;
+      border-radius: 22px;
+      padding: 18px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    .checkbox-row input {
+      transform: scale(1.16);
+    }
+
+    .policy-note {
+      margin-top: 12px;
+      background: rgba(201,162,39,0.12);
+      border: 1px solid rgba(201,162,39,0.40);
+      color: #473608;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .calc-item {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    }
+
+    .calc-item .title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gray-3);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .calc-item .value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--black);
+      line-height: 1.1;
+    }
+
+    .subtotal-line {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--gray-3);
+      font-weight: 700;
+    }
+
+    .action-panel {
+      position: sticky;
+      bottom: 18px;
+      z-index: 20;
+      margin-top: 28px;
+    }
+
+    .action-shell {
+      background: rgba(9,9,9,0.94);
+      color: white;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 20px 36px rgba(0,0,0,0.18);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .action-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .action-copy strong {
+      font-size: 16px;
+    }
+
+    .action-copy span {
+      color: rgba(255,255,255,0.74);
+      font-size: 13px;
+    }
+
+    .success-card {
+      display: none;
+      margin-top: 22px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfaf5 100%);
+      border: 1px solid rgba(201,162,39,0.32);
+      border-left: 7px solid var(--gold);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .success-card.show {
+      display: block;
+    }
+
+    .success-card h3 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .success-card p {
+      margin: 0;
+      color: var(--gray-3);
+      line-height: 1.6;
+    }
+
+    .loading-state {
+      display: none;
+      margin-top: 14px;
+      color: var(--gray-3);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 980px) {
+      .summary-strip {
+        grid-template-columns: 1fr 1fr;
       }
     }
 
-    @media (max-width: 700px) {
-      .form-grid {
+    @media (max-width: 760px) {
+      .hero h1 {
+        font-size: 38px;
+      }
+
+      .two-col,
+      .three-col,
+      .provider-row,
+      .calc-grid,
+      .summary-strip {
         grid-template-columns: 1fr;
       }
 
-      .header h1 {
-        font-size: 34px;
-      }
-
-      .page {
-        padding: 20px 10px;
-      }
-
-      .content,
-      .header {
-        padding-left: 16px;
-        padding-right: 16px;
+      .action-shell {
+        border-radius: 26px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="container">
-      <div class="header">
-        <div class="brand">Texas Ponce Law, PLLC</div>
-        <h1>Ponce Demand Portal</h1>
-        <p>Generate polished settlement demand letters with the correct policy limits workflow.</p>
-      </div>
-
-      <div class="content">
-        <div class="panel">
-          <h2>Claim Information</h2>
-
-          <form method="POST">
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="recipient_name">Recipient Name</label>
-                <input type="text" id="recipient_name" name="recipient_name" placeholder="Bob Adjuster" value="{{ form_data.recipient_name }}">
-              </div>
-
-              <div class="form-group">
-                <label for="client_name">Client Name</label>
-                <input type="text" id="client_name" name="client_name" placeholder="Billy Client" value="{{ form_data.client_name }}">
-              </div>
-
-              <div class="form-group">
-                <label for="loss_date">Loss Date</label>
-                <input type="text" id="loss_date" name="loss_date" placeholder="01/02/2024" value="{{ form_data.loss_date }}">
-              </div>
-
-              <div class="form-group">
-                <label for="demand_deadline">Demand Deadline Date and Time</label>
-                <input type="text" id="demand_deadline" name="demand_deadline" placeholder="03/15/2026 at 5:00 PM" value="{{ form_data.demand_deadline }}">
-              </div>
-
-              <div class="form-group">
-                <label for="medical_expenses">Medical Expenses</label>
-                <input type="text" id="medical_expenses" name="medical_expenses" placeholder="$12,500.00" value="{{ med_total_value }}">
-              </div>
-
-              <div class="form-group">
-                <label for="lost_wages">Lost Wages</label>
-                <input type="text" id="lost_wages" name="lost_wages" placeholder="$2,500.00" value="{{ lost_wages_value }}">
-              </div>
-
-              <div class="form-group">
-                <label for="multiplier">Pain / Suffering Multiplier</label>
-                <input type="number" step="0.1" id="multiplier" name="multiplier" placeholder="2.0" value="{{ multiplier_value }}">
-              </div>
-
-              <div class="form-group">
-                <label for="settlement_amount">Manual Settlement Amount</label>
-                <input type="text" id="settlement_amount" name="settlement_amount" placeholder="$25,000.00" value="{{ settlement_amount_value }}">
-              </div>
-
-              <div class="form-group full-width">
-                <div class="checkbox-card">
-                  <input type="checkbox" id="use_suggested_settlement" name="use_suggested_settlement" {% if use_suggested_checked %}checked{% endif %}>
-                  <label for="use_suggested_settlement">Use Suggested Settlement</label>
-                </div>
-
-                <div class="checkbox-card">
-                  <input type="checkbox" id="policy_limit_demand" name="policy_limit_demand" {% if policy_limit_checked %}checked{% endif %}>
-                  <label for="policy_limit_demand">Policy Limit Demand</label>
-                </div>
-              </div>
-
-              <div class="form-group full-width">
-                <label>Demand Preview</label>
-                <div class="preview-box" id="demand_preview">{{ demand_preview or "Settlement Demand" }}</div>
-
-                <div class="suggested-box">
-                  <div class="suggested-label">Suggested Final Settlement Amount</div>
-                  <div class="suggested-value" id="suggested_amount_display">
-                    {{ suggested_settlement_display or "$0.00" }}
-                  </div>
-                </div>
-
-                <div class="preview-help">
-                  Damages estimate: medical expenses + lost wages + (medical expenses × multiplier). The multiplier reflects pain, suffering, and overall life impact. If Policy Limit Demand is selected, the letter requests tender of all available policy limits instead of a specific dollar amount.
-                </div>
-              </div>
-
-              <div class="form-group full-width">
-                <label for="facts_of_loss">Facts of Loss</label>
-                <textarea id="facts_of_loss" name="facts_of_loss" placeholder="Write a clean case-specific narrative describing how the collision occurred.">{{ form_data.facts_of_loss }}</textarea>
-              </div>
-
-              <div class="form-group full-width">
-                <label for="liability_text">Liability</label>
-                <textarea id="liability_text" name="liability_text" placeholder="Write a case-specific liability section based on the facts of loss.">{{ form_data.liability_text }}</textarea>
-              </div>
-
-              <div class="form-group full-width">
-                <label for="treatment_text">Treatment and Injuries</label>
-                <textarea id="treatment_text" name="treatment_text" placeholder="Insert treatment narrative based on the treatment summary.">{{ form_data.treatment_text }}</textarea>
-              </div>
-
-              <div class="form-group full-width">
-                <label for="non_economic_text">Non-Economic Damages</label>
-                <textarea id="non_economic_text" name="non_economic_text" placeholder="Describe pain, emotional distress, limitations, and quality-of-life impact.">{{ form_data.non_economic_text }}</textarea>
-              </div>
-
-              <div class="button-row full-width">
-                <button type="submit">Generate Letter</button>
-              </div>
-            </div>
-          </form>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="brand-row">
+        <div class="brand-block">
+          <div class="eyebrow">Texas Ponce Law, PLLC</div>
+          <h1>Demand Portal</h1>
+          <p>Build polished demand letters in a clean waterfall workflow with branded presentation and downloadable DOCX output.</p>
         </div>
-
-        <div class="letter-shell">
-          <h2 class="letter-title">Generated Letter</h2>
-          <p class="letter-subtitle">Review the generated demand letter before exporting or copying it.</p>
-
-          {% if generated_letter %}
-            <textarea readonly>{{ generated_letter }}</textarea>
-          {% else %}
-            <div class="empty-state">
-              Your demand letter preview will appear here after you submit the claim information.
-            </div>
-          {% endif %}
-        </div>
+        <div class="hero-pill">Black / Gold Internal Workflow</div>
       </div>
     </div>
+  </section>
+
+  <div class="page">
+    <div class="summary-strip">
+      <div class="summary-card">
+        <div class="label">Demand Type</div>
+        <div class="value" id="summaryDemandType">Settlement Demand</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Medical Expenses</div>
+        <div class="value" id="summaryMedical">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Lost Wages</div>
+        <div class="value" id="summaryWages">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Suggested Settlement</div>
+        <div class="value" id="summarySettlement">$0.00</div>
+      </div>
+    </div>
+
+    <form id="demandForm" class="layout">
+      <div class="section">
+        <h2>Claim Information</h2>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="recipient_name">Recipient Name</label>
+            <input type="text" id="recipient_name" name="recipient_name" placeholder="Bob Adjuster" required>
+          </div>
+
+          <div class="field">
+            <label for="adjuster_name">Adjuster Name</label>
+            <input type="text" id="adjuster_name" name="adjuster_name" placeholder="Bob Adjuster">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="client_name">Client Name</label>
+            <input type="text" id="client_name" name="client_name" placeholder="Billy Client" required>
+          </div>
+
+          <div class="field">
+            <label for="claim_number">Claim Number</label>
+            <input type="text" id="claim_number" name="claim_number" placeholder="CLM-123456">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="loss_date">Loss Date</label>
+            <input type="text" id="loss_date" name="loss_date" placeholder="01/02/2024" required>
+          </div>
+
+          <div class="field">
+            <label for="deadline">Demand Deadline Date and Time</label>
+            <input type="text" id="deadline" name="deadline" placeholder="03/15/2026 at 5:00 PM">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Facts of Loss</h2>
+        <div class="section-subtext">Use a clean narrative. Liability will be generated automatically from this section.</div>
+        <div class="field">
+          <label for="facts_of_loss">Facts of Loss</label>
+          <textarea id="facts_of_loss" name="facts_of_loss" placeholder="Write a clean case-specific narrative describing how the collision occurred." required></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Treatment and Injuries</h2>
+        <div class="field">
+          <label for="treatment_summary">Treatment and Injuries</label>
+          <textarea id="treatment_summary" name="treatment_summary" placeholder="Insert treatment narrative based on the treatment summary."></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Non-Economic Damages</h2>
+        <div class="field">
+          <label for="non_economic_damages">Non-Economic Damages</label>
+          <textarea id="non_economic_damages" name="non_economic_damages" placeholder="Describe pain, emotional distress, limitations, and quality-of-life impact."></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Medical Bills & Settlement Calculator</h2>
+        <div class="section-subtext">Add provider rows below. Medical expenses will auto-total from provider amounts when entered.</div>
+
+        <div id="providerRows">
+          <div class="provider-row">
+            <div class="field">
+              <label>Provider Name</label>
+              <input type="text" name="provider_name[]" placeholder="Provider Name">
+            </div>
+            <div class="field">
+              <label>Amount</label>
+              <input type="number" step="0.01" min="0" name="provider_amount[]" class="provider-amount" placeholder="0.00">
+            </div>
+            <button type="button" class="btn btn-danger" onclick="removeProviderRow(this)">Remove</button>
+          </div>
+        </div>
+
+        <div class="provider-actions">
+          <button type="button" class="btn btn-gold" onclick="addProviderRow()">+ Add Provider Row</button>
+        </div>
+
+        <div class="subtotal-line">Provider subtotal: <span id="providerSubtotal">$0.00</span></div>
+
+        <div class="calc-box">
+          <div class="three-col">
+            <div class="field">
+              <label for="medical_expenses">Medical Expenses</label>
+              <input type="number" step="0.01" min="0" id="medical_expenses" name="medical_expenses" value="0">
+            </div>
+
+            <div class="field">
+              <label for="lost_wages">Lost Wages</label>
+              <input type="number" step="0.01" min="0" id="lost_wages" name="lost_wages" value="0">
+            </div>
+
+            <div class="field">
+              <label for="multiplier">Multiplier</label>
+              <input type="number" step="0.1" min="1" id="multiplier" name="multiplier" value="3">
+            </div>
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="policy_limit_demand" name="policy_limit_demand" value="yes">
+            <label for="policy_limit_demand" style="margin:0;">Policy Limit Demand</label>
+          </div>
+
+          <div id="policyNote" class="policy-note" style="display:none;">
+            Policy Limit Demand is enabled. This demand will request all available policy limits instead of a dollar settlement amount.
+          </div>
+
+          <div class="calc-grid">
+            <div class="calc-item">
+              <div class="title">Suggested Settlement</div>
+              <div class="value" id="suggestedSettlementDisplay">$0.00</div>
+            </div>
+
+            <div class="calc-item">
+              <div class="title">Total Special / Economic Damages</div>
+              <div class="value" id="economicTotalDisplay">$0.00</div>
+            </div>
+           </div>
+          </div>
+
+      <div class="section">
+        <h2>Damages Explanation</h2>
+        <div class="field">
+          <label for="damages_explanation">Short Bottom Damages Explanation</label>
+          <textarea id="damages_explanation" name="damages_explanation" placeholder="Keep this short and clean for the bottom of the demand letter."></textarea>
+        </div>
+      </div>
+
+      <div class="action-panel">
+        <div class="action-shell">
+          <div class="action-copy">
+            <strong>Generate the final demand letter</strong>
+            <span>Review the numbers, then download a polished DOCX file.</span>
+          </div>
+          <button type="submit" id="generateBtn" class="btn btn-gold">Generate DOCX</button>
+        </div>
+      </div>
+
+      <div id="loadingState" class="loading-state">Generating DOCX and starting download...</div>
+
+      <div id="successCard" class="success-card">
+        <h3>Demand letter generated successfully</h3>
+        <p>Your DOCX file download should have started. Check your browser’s default download location if it does not appear immediately.</p>
+      </div>
+    </form>
   </div>
 
   <script>
-    function parseMoney(value) {
-      const cleaned = (value || '').replace(/[$,]/g, '').trim();
-      const num = parseFloat(cleaned);
-      return isNaN(num) ? 0 : num;
-    }
-
-    function money(value) {
-      return '$' + value.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+    function currencyFormat(value) {
+      const num = Number(value || 0);
+      return num.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD'
       });
     }
 
-    function updateSuggestedSettlement() {
-      const medicalExpenses = parseMoney(document.getElementById('medical_expenses').value);
-      const lostWages = parseMoney(document.getElementById('lost_wages').value);
-      const multiplier = parseFloat(document.getElementById('multiplier').value) || 0;
+    function getNumericValue(id) {
+      const val = parseFloat(document.getElementById(id).value);
+      return isNaN(val) ? 0 : val;
+    }
 
-      const base = medicalExpenses + lostWages;
-      const painComponent = medicalExpenses * multiplier;
-      const total = base + painComponent;
-
-      document.getElementById('suggested_amount_display').textContent = money(total);
+    function sumProviderAmounts() {
+      let total = 0;
+      document.querySelectorAll('.provider-amount').forEach(input => {
+        const val = parseFloat(input.value);
+        total += isNaN(val) ? 0 : val;
+      });
       return total;
     }
 
-    function updateDemandUI() {
-      const policyLimitCheckbox = document.getElementById('policy_limit_demand');
-      const useSuggestedCheckbox = document.getElementById('use_suggested_settlement');
-      const settlementInput = document.getElementById('settlement_amount');
-      const demandPreview = document.getElementById('demand_preview');
+    function updateCalculator() {
+      const providerTotal = sumProviderAmounts();
+      const medicalField = document.getElementById('medical_expenses');
+      const lostWages = getNumericValue('lost_wages');
+      const multiplier = getNumericValue('multiplier');
+      const isPolicyLimit = document.getElementById('policy_limit_demand').checked;
 
-      updateSuggestedSettlement();
+      if (providerTotal > 0) {
+        medicalField.value = providerTotal.toFixed(2);
+      }
 
-      if (policyLimitCheckbox.checked) {
-        settlementInput.disabled = true;
-        useSuggestedCheckbox.checked = false;
-        useSuggestedCheckbox.disabled = true;
-        settlementInput.value = '';
-        demandPreview.textContent = 'Policy Limits Demand';
+      const medicalExpenses = getNumericValue('medical_expenses');
+      const economicTotal = medicalExpenses + lostWages;
+      const suggestedSettlement = economicTotal * multiplier;
+
+      document.getElementById('providerSubtotal').textContent = currencyFormat(providerTotal);
+      document.getElementById('economicTotalDisplay').textContent = currencyFormat(economicTotal);
+      document.getElementById('suggestedSettlementDisplay').textContent = isPolicyLimit
+        ? 'Policy Limits'
+        : currencyFormat(suggestedSettlement);
+
+      document.getElementById('policyNote').style.display = isPolicyLimit ? 'block' : 'none';
+
+      document.getElementById('summaryDemandType').textContent = isPolicyLimit ? 'Policy Limits Demand' : 'Settlement Demand';
+      document.getElementById('summaryMedical').textContent = currencyFormat(medicalExpenses);
+      document.getElementById('summaryWages').textContent = currencyFormat(lostWages);
+      document.getElementById('summarySettlement').textContent = isPolicyLimit
+        ? 'Policy Limits'
+        : currencyFormat(suggestedSettlement);
+    }
+
+    function addProviderRow() {
+      const wrapper = document.getElementById('providerRows');
+      const row = document.createElement('div');
+      row.className = 'provider-row';
+      row.innerHTML = `
+        <div class="field">
+          <label>Provider Name</label>
+          <input type="text" name="provider_name[]" placeholder="Provider Name">
+        </div>
+        <div class="field">
+          <label>Amount</label>
+          <input type="number" step="0.01" min="0" name="provider_amount[]" class="provider-amount" placeholder="0.00">
+        </div>
+        <button type="button" class="btn btn-danger" onclick="removeProviderRow(this)">Remove</button>
+      `;
+      wrapper.appendChild(row);
+      bindProviderListeners();
+      const inputs = row.querySelectorAll('input');
+      if (inputs.length > 0) {
+        inputs[0].focus();
+      }
+      updateCalculator();
+    }
+
+    function removeProviderRow(button) {
+      const rows = document.querySelectorAll('#providerRows .provider-row');
+      if (rows.length > 1) {
+        button.parentElement.remove();
       } else {
-        settlementInput.disabled = false;
-        useSuggestedCheckbox.disabled = false;
-        demandPreview.textContent = 'Settlement Demand';
+        button.parentElement.querySelector('input[name="provider_name[]"]').value = '';
+        button.parentElement.querySelector('input[name="provider_amount[]"]').value = '';
+      }
+      updateCalculator();
+    }
 
-        if (useSuggestedCheckbox.checked) {
-          const suggested = updateSuggestedSettlement();
-          settlementInput.value = money(suggested);
+    function bindProviderListeners() {
+      document.querySelectorAll('.provider-amount').forEach(input => {
+        input.removeEventListener('input', updateCalculator);
+        input.addEventListener('input', updateCalculator);
+      });
+    }
+
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const form = document.getElementById('demandForm');
+      const button = document.getElementById('generateBtn');
+      const loadingState = document.getElementById('loadingState');
+      const successCard = document.getElementById('successCard');
+
+      updateCalculator();
+
+      button.disabled = true;
+      button.textContent = 'Generating...';
+      loadingState.style.display = 'block';
+      successCard.classList.remove('show');
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch('/generate', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate DOCX');
         }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        let filename = 'Demand_Letter.docx';
+        const disposition = response.headers.get('Content-Disposition');
+        if (disposition && disposition.includes('filename=')) {
+          const match = disposition.match(/filename="?([^"]+)"?/);
+          if (match && match[1]) {
+            filename = match[1];
+          }
+        }
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        window.URL.revokeObjectURL(url);
+        successCard.classList.add('show');
+        successCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (error) {
+        alert('There was a problem generating the DOCX file.');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Generate DOCX';
+        loadingState.style.display = 'none';
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const policyLimitCheckbox = document.getElementById('policy_limit_demand');
-      const useSuggestedCheckbox = document.getElementById('use_suggested_settlement');
-      const medicalExpenses = document.getElementById('medical_expenses');
-      const lostWages = document.getElementById('lost_wages');
-      const multiplier = document.getElementById('multiplier');
+    document.getElementById('medical_expenses').addEventListener('input', updateCalculator);
+    document.getElementById('lost_wages').addEventListener('input', updateCalculator);
+    document.getElementById('multiplier').addEventListener('input', updateCalculator);
+    document.getElementById('policy_limit_demand').addEventListener('change', updateCalculator);
+    document.getElementById('demandForm').addEventListener('submit', handleFormSubmit);
 
-      [medicalExpenses, lostWages, multiplier].forEach(function (el) {
-        if (el) {
-          el.addEventListener('input', function () {
-            updateSuggestedSettlement();
-            if (useSuggestedCheckbox.checked && !policyLimitCheckbox.checked) {
-              document.getElementById('settlement_amount').value = money(updateSuggestedSettlement());
-            }
-          });
-        }
-      });
-
-      if (policyLimitCheckbox) {
-        policyLimitCheckbox.addEventListener('change', updateDemandUI);
-      }
-
-      if (useSuggestedCheckbox) {
-        useSuggestedCheckbox.addEventListener('change', updateDemandUI);
-      }
-
-      updateDemandUI();
-    });
+    bindProviderListeners();
+    updateCalculator();
   </script>
 </body>
 </html>

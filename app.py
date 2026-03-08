@@ -1,6 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file, jsonify, redirect, url_for, session
+from docx import Document
+from docx.shared import Pt
+import io
+import re
 
 app = Flask(__name__)
+app.secret_key = "ponce_secret_key"
+USERNAME = "admin"
+PASSWORD = "ponce"
 
 
 def clean_text(value):
@@ -14,12 +21,13 @@ def clean_facts_of_loss(text):
         "our client was client was": "our client was",
         "was was": "was",
         "the the": "the",
+        "rear-ended from the rear": "rear-ended",
+        "collision collision": "collision",
     }
-    lowered = text
     for bad, good in replacements.items():
-        lowered = lowered.replace(bad, good)
-        lowered = lowered.replace(bad.title(), good.title())
-    return lowered
+        text = text.replace(bad, good)
+        text = text.replace(bad.title(), good.title())
+    return " ".join(text.split())
 
 
 def parse_money(value):
@@ -36,159 +44,271 @@ def money(value):
     return "${:,.2f}".format(value)
 
 
-def suggest_settlement(med_total, lost_wages, multiplier):
-    base = med_total + lost_wages
-    pain_component = med_total * multiplier
-    return base + pain_component
+def safe_filename(value):
+    value = clean_text(value)
+    if not value:
+        return "Demand_Letter"
+    value = re.sub(r"[^A-Za-z0-9._ -]+", "", value)
+    value = value.replace(" ", "_")
+    return value or "Demand_Letter"
 
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    generated_letter = ""
-    demand_preview = "Settlement Demand"
-    suggested_settlement_display = ""
-    settlement_amount_value = ""
-    policy_limit_checked = False
-    use_suggested_checked = False
-    multiplier_value = ""
-    med_total_value = ""
-    lost_wages_value = ""
+def add_paragraph(document, text="", bold=False, font_size=11, space_after=8):
+    p = document.add_paragraph()
+    run = p.add_run(text)
+    run.bold = bold
+    run.font.name = "Times New Roman"
+    run.font.size = Pt(font_size)
+    p.paragraph_format.space_after = Pt(space_after)
+    return p
 
-    form_data = {
-        "recipient_name": "",
-        "client_name": "",
-        "loss_date": "",
-        "demand_deadline": "",
-        "facts_of_loss": "",
-        "liability_text": "",
-        "treatment_text": "",
-        "non_economic_text": "",
-    }
 
-    if request.method == "POST":
-        recipient_name = clean_text(request.form.get("recipient_name"))
-        client_name = clean_text(request.form.get("client_name"))
-        loss_date = clean_text(request.form.get("loss_date"))
-        demand_deadline = clean_text(request.form.get("demand_deadline"))
-        facts_of_loss = clean_facts_of_loss(request.form.get("facts_of_loss"))
-        liability_text = clean_text(request.form.get("liability_text"))
-        treatment_text = clean_text(request.form.get("treatment_text"))
-        non_economic_text = clean_text(request.form.get("non_economic_text"))
+def build_letter_data(form):
+    recipient_name = clean_text(form.get("recipient_name"))
+    adjuster_name = clean_text(form.get("adjuster_name"))
+    client_name = clean_text(form.get("client_name"))
+    claim_number = clean_text(form.get("claim_number"))
+    loss_date = clean_text(form.get("loss_date"))
+    deadline = clean_text(form.get("deadline"))
 
-        med_total_value = clean_text(request.form.get("medical_expenses"))
-        lost_wages_value = clean_text(request.form.get("lost_wages"))
-        multiplier_value = clean_text(request.form.get("multiplier"))
-        settlement_amount_value = clean_text(request.form.get("settlement_amount"))
+    facts_of_loss = clean_facts_of_loss(form.get("facts_of_loss"))
+    treatment_text = clean_text(form.get("treatment_summary"))
+    non_economic_text = clean_text(form.get("non_economic_damages"))
+    damages_explanation = clean_text(form.get("damages_explanation"))
 
-        policy_limit_checked = request.form.get("policy_limit_demand") == "on"
-        use_suggested_checked = request.form.get("use_suggested_settlement") == "on"
+    provider_names = form.getlist("provider_name[]")
+    provider_amounts = form.getlist("provider_amount[]")
 
-        med_total = parse_money(med_total_value)
-        lost_wages = parse_money(lost_wages_value)
+    providers = []
+    for name, amount in zip(provider_names, provider_amounts):
+        clean_name = clean_text(name)
+        clean_amount_raw = clean_text(amount)
+
+        if not clean_name and not clean_amount_raw:
+            continue
 
         try:
-            multiplier_num = float(multiplier_value) if multiplier_value else 0.0
+            clean_amount = float(clean_amount_raw) if clean_amount_raw else 0.0
         except ValueError:
-            multiplier_num = 0.0
+            clean_amount = 0.0
 
-        suggested_amount = suggest_settlement(med_total, lost_wages, multiplier_num)
-        if suggested_amount > 0:
-            suggested_settlement_display = money(suggested_amount)
+        providers.append({
+            "provider_name": clean_name or "Provider",
+            "amount": clean_amount,
+            "amount_display": money(clean_amount)
+        })
 
-        if policy_limit_checked:
-            demand_preview = "Policy Limits Demand"
-            final_demand_sentence = (
-                "Based on the clear liability of your insured, the severity of the collision, "
-                "the objective diagnostic findings, and the ongoing impact on my client's quality of life, "
-                "we hereby demand tender of all available policy limits in full and final settlement of this claim."
+    medical_expenses = parse_money(form.get("medical_expenses"))
+    lost_wages = parse_money(form.get("lost_wages"))
+
+    provider_total = sum(item["amount"] for item in providers)
+    if provider_total > 0:
+        medical_expenses = provider_total
+
+    multiplier_value = clean_text(form.get("multiplier"))
+    try:
+        multiplier_num = float(multiplier_value) if multiplier_value else 3.0
+    except ValueError:
+        multiplier_num = 3.0
+
+    economic_total = medical_expenses + lost_wages
+    suggested_amount = economic_total * multiplier_num
+
+    policy_limit_checked = form.get("policy_limit_demand") == "yes"
+
+    if facts_of_loss:
+        liability_text = (
+            "Liability is clear in this matter. Based on the facts of loss, the collision was caused "
+            "by the negligence of the at-fault driver, who failed to exercise ordinary care in the "
+            "operation of the vehicle. As a direct and proximate result of that negligence, our client "
+            "sustained injuries and damages."
+        )
+    else:
+        liability_text = (
+            "Liability is clear. The available facts show that the collision was caused by the negligence "
+            "of the at-fault driver, who failed to operate the vehicle in a reasonably safe manner under "
+            "the circumstances."
+        )
+
+    if policy_limit_checked:
+        demand_type = "Policy Limits Demand"
+        suggested_settlement_display = "Policy Limits"
+        conclusion_text = (
+            "Based on the clear liability of your insured, the nature and extent of our client's injuries, "
+            "the medical treatment required, and the resulting damages, we hereby demand tender of all "
+            "available policy limits within the time allowed."
+        )
+    else:
+        demand_type = "Settlement Demand"
+        suggested_settlement_display = money(suggested_amount)
+        conclusion_text = (
+            f"Based on the liability, injuries, treatment, economic losses, and non-economic damages, "
+            f"we believe a fair and reasonable settlement of this claim is {suggested_settlement_display}."
+        )
+
+    return {
+        "recipient_name": recipient_name,
+        "adjuster_name": adjuster_name,
+        "client_name": client_name,
+        "claim_number": claim_number,
+        "loss_date": loss_date,
+        "deadline": deadline,
+        "facts_of_loss": facts_of_loss,
+        "liability_text": liability_text,
+        "treatment_text": treatment_text,
+        "non_economic_text": non_economic_text,
+        "damages_explanation": damages_explanation,
+        "providers": providers,
+        "medical_expenses": medical_expenses,
+        "lost_wages": lost_wages,
+        "multiplier_num": multiplier_num,
+        "economic_total": economic_total,
+        "suggested_settlement_display": suggested_settlement_display,
+        "policy_limit_checked": policy_limit_checked,
+        "demand_type": demand_type,
+        "conclusion_text": conclusion_text,
+    }
+
+
+def build_docx(letter_data):
+    document = Document()
+
+    style = document.styles["Normal"]
+    style.font.name = "Times New Roman"
+    style.font.size = Pt(11)
+
+    add_paragraph(
+        document,
+        "This letter is written for the sole purpose of settlement and is not intended for use for any other purpose without the express written consent of this office. Accordingly, this letter and the material included herein shall not, to the extent allowed by law, be admitted as evidence.",
+        font_size=11,
+        space_after=12
+    )
+
+    recipient_line = (
+        letter_data["recipient_name"]
+        or letter_data["adjuster_name"]
+        or "Adjuster"
+    )
+    add_paragraph(document, f"Dear {recipient_line}:", font_size=11, space_after=12)
+
+    intro = (
+        f"Texas Ponce Law, PLLC has been retained to represent {letter_data['client_name'] or 'our client'} "
+        f"for injuries sustained as a result of a motor vehicle collision that occurred on "
+        f"{letter_data['loss_date'] or 'the date of loss'}."
+    )
+    add_paragraph(document, intro, font_size=11, space_after=12)
+
+    if letter_data["claim_number"]:
+        add_paragraph(document, f"Claim Number: {letter_data['claim_number']}", font_size=11, space_after=12)
+
+    if letter_data["deadline"]:
+        add_paragraph(document, f"Demand Deadline: {letter_data['deadline']}", font_size=11, space_after=12)
+
+    add_paragraph(document, "Facts of Loss", bold=True, font_size=12, space_after=6)
+    add_paragraph(document, letter_data["facts_of_loss"] or "N/A", font_size=11, space_after=12)
+
+    add_paragraph(document, "Liability", bold=True, font_size=12, space_after=6)
+    add_paragraph(document, letter_data["liability_text"], font_size=11, space_after=12)
+
+    add_paragraph(document, "Treatment and Injuries", bold=True, font_size=12, space_after=6)
+    add_paragraph(document, letter_data["treatment_text"] or "N/A", font_size=11, space_after=12)
+
+    add_paragraph(document, "Non-Economic Damages", bold=True, font_size=12, space_after=6)
+    add_paragraph(document, letter_data["non_economic_text"] or "N/A", font_size=11, space_after=12)
+
+    add_paragraph(document, "Medical Bills", bold=True, font_size=12, space_after=6)
+    if letter_data["providers"]:
+        for provider in letter_data["providers"]:
+            add_paragraph(
+                document,
+                f"{provider['provider_name']}: {provider['amount_display']}",
+                font_size=11,
+                space_after=4
             )
+    else:
+        add_paragraph(document, "No provider bills listed.", font_size=11, space_after=8)
+
+    add_paragraph(document, "", font_size=11, space_after=2)
+    add_paragraph(document, f"Medical Expenses: {money(letter_data['medical_expenses'])}", font_size=11, space_after=4)
+    add_paragraph(document, f"Lost Wages: {money(letter_data['lost_wages'])}", font_size=11, space_after=4)
+    add_paragraph(document, f"Multiplier: {letter_data['multiplier_num']:.1f}", font_size=11, space_after=4)
+    add_paragraph(document, f"Suggested Settlement: {letter_data['suggested_settlement_display']}", font_size=11, space_after=12)
+
+    add_paragraph(document, "Damages Explanation", bold=True, font_size=12, space_after=6)
+    add_paragraph(document, letter_data["damages_explanation"] or "N/A", font_size=11, space_after=12)
+
+    add_paragraph(document, "Conclusion", bold=True, font_size=12, space_after=6)
+    add_paragraph(document, letter_data["conclusion_text"], font_size=11, space_after=12)
+
+    add_paragraph(document, "Please contact our office if you have any questions.", font_size=11, space_after=12)
+
+    add_paragraph(document, "Sincerely,", font_size=11, space_after=18)
+    add_paragraph(document, "Texas Ponce Law, PLLC", font_size=11, space_after=0)
+
+    return document
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == USERNAME and password == PASSWORD:
+            session["logged_in"] = True
+            return redirect(url_for("index"))
         else:
-            demand_preview = "Settlement Demand"
+            error = "Invalid login credentials"
 
-            if use_suggested_checked and suggested_amount > 0:
-                settlement_amount_value = money(suggested_amount)
+    return render_template("login.html", error=error)
 
-            if settlement_amount_value:
-                final_demand_sentence = (
-                    f"Based on the clear liability of your insured, the severity of the collision, "
-                    f"the objective diagnostic findings, and the ongoing impact on my client's quality of life, "
-                    f"we hereby demand {settlement_amount_value} in full and final settlement of this claim."
-                )
-            else:
-                final_demand_sentence = (
-                    "Based on the clear liability of your insured, the severity of the collision, "
-                    "the objective diagnostic findings, and the ongoing impact on my client's quality of life, "
-                    "we hereby demand a fair and reasonable settlement in full and final settlement of this claim."
-                )
+@app.route("/", methods=["GET"])
+def index():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
 
-        generated_letter = f"""This letter is written for the sole purpose of settlement and is not intended for use for any other purpose without the express written consent of this office. Accordingly, this letter and the material included herein shall not, to the extent allowed by law, be admitted as evidence.
+    return render_template("form.html")
 
-Dear {recipient_name}:
+@app.route("/generate", methods=["POST"])
+def generate():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    letter_data = build_letter_data(request.form)
+    document = build_docx(letter_data)
 
-Texas Ponce Law, PLLC has been retained to represent {client_name} for injuries sustained as a result of a motor vehicle collision that occurred on {loss_date}.
+    file_stream = io.BytesIO()
+    document.save(file_stream)
+    file_stream.seek(0)
 
-We have been instructed to recover compensation for the debt owed and personal injuries sustained as a direct result of this collision.
+    demand_label = "Policy_Limits_Demand" if letter_data["policy_limit_checked"] else "Settlement_Demand"
+    client_part = safe_filename(letter_data["client_name"] or "Client")
+    filename = f"{client_part}_{demand_label}.docx"
 
-This settlement offer is open until {demand_deadline}.
-
-Enclosed for your review are my client’s medical records, bills, and supporting documentation.
-
-FACTS OF LOSS
-
-{facts_of_loss}
-
-LIABILITY
-
-{liability_text}
-
-TREATMENT AND INJURIES
-
-{treatment_text}
-
-PAST MEDICAL EXPENSES
-
-Total Medical Expenses: {money(med_total)}
-
-NON-ECONOMIC DAMAGES
-
-{non_economic_text}
-
-CONCLUSION
-
-{final_demand_sentence}
-
-This offer will remain open until {demand_deadline}.
-
-Sincerely,
-
-Texas Ponce Law, PLLC
-"""
-
-        form_data = {
-            "recipient_name": recipient_name,
-            "client_name": client_name,
-            "loss_date": loss_date,
-            "demand_deadline": demand_deadline,
-            "facts_of_loss": facts_of_loss,
-            "liability_text": liability_text,
-            "treatment_text": treatment_text,
-            "non_economic_text": non_economic_text,
-        }
-
-    return render_template(
-        "form.html",
-        generated_letter=generated_letter,
-        demand_preview=demand_preview,
-        suggested_settlement_display=suggested_settlement_display,
-        settlement_amount_value=settlement_amount_value,
-        policy_limit_checked=policy_limit_checked,
-        use_suggested_checked=use_suggested_checked,
-        multiplier_value=multiplier_value,
-        med_total_value=med_total_value,
-        lost_wages_value=lost_wages_value,
-        form_data=form_data,
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
 
+@app.route("/preview-data", methods=["POST"])
+def preview_data():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    letter_data = build_letter_data(request.form)
+    return jsonify({
+        "demand_type": letter_data["demand_type"],
+        "medical_expenses": money(letter_data["medical_expenses"]),
+        "lost_wages": money(letter_data["lost_wages"]),
+        "suggested_settlement": letter_data["suggested_settlement_display"]
+    })
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 if __name__ == "__main__":
     app.run(debug=True)
