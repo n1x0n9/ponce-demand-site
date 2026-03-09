@@ -312,7 +312,6 @@ def build_docx(letter_data):
 
     return document
 
-
 def build_content_pdf(letter_data):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=LETTER)
@@ -320,15 +319,20 @@ def build_content_pdf(letter_data):
 
     left_margin = 95
     right_margin = 95
-    top_margin = 195
+    first_page_top_margin = 195
+    other_page_top_margin = 72
     bottom_margin = 70
     usable_width = page_width - left_margin - right_margin
-    y = page_height - top_margin
+    y = page_height - first_page_top_margin
+   
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(45, 20, 240, 75, fill=1, stroke=0)
+    c.setFillColorRGB(0, 0, 0)
 
     def new_page():
         nonlocal y
         c.showPage()
-        y = page_height - top_margin
+        y = page_height - other_page_top_margin
 
     def ensure_space(amount):
         nonlocal y
@@ -357,7 +361,7 @@ def build_content_pdf(letter_data):
 
         return lines
 
-    def draw_paragraph(text, font_name="Times-Roman", font_size=13, leading=19, space_after=10):
+    def draw_paragraph(text, font_name="Times-Roman", font_size=11, leading=15, space_after=8):
         nonlocal y
         text = str(text or "").strip()
         if not text:
@@ -374,16 +378,16 @@ def build_content_pdf(letter_data):
 
         y -= space_after
 
-    def draw_heading(text, font_size=28):
+    def draw_heading(text, font_size=15):
         nonlocal y
-        ensure_space(48)
+        ensure_space(34)
         c.setFont("Times-Bold", font_size)
         c.drawString(left_margin, y, text)
-        y -= 34
+        y -= 18
         c.setLineWidth(0.3)
         c.line(left_margin, y, page_width - right_margin, y)
-        y -= 24
-
+        y -= 12
+       
     def draw_provider_table(providers):
         nonlocal y
         col1 = left_margin
@@ -469,26 +473,38 @@ def build_content_pdf(letter_data):
         or letter_data["damages_explanation"]
         or "As a result of the collision and resulting injuries, our client has endured physical pain, emotional distress, disruption to daily life, and ongoing limitations affecting overall quality of life."
     )
-    draw_paragraph(non_econ_body, font_size=13, leading=19, space_after=22)
+    draw_paragraph(non_econ_body, font_size=11, leading=15, space_after=18)
 
     draw_heading("CONCLUSION")
     if not letter_data["policy_limit_checked"]:
-        draw_paragraph("Based on:", font_size=13, leading=19, space_after=8)
-        draw_paragraph("• the clear liability of your insured", font_size=13, leading=19, space_after=2)
-        draw_paragraph("• the severity of the collision", font_size=13, leading=19, space_after=2)
-        draw_paragraph("• the objective diagnostic findings", font_size=13, leading=19, space_after=2)
-        draw_paragraph("• the economic damages sustained", font_size=13, leading=19, space_after=2)
-        draw_paragraph("• the ongoing impact on our client's quality of life", font_size=13, leading=19, space_after=16)
+        draw_paragraph("Based on:", font_size=11, leading=15, space_after=6)
+        draw_paragraph("• the clear liability of your insured", font_size=11, leading=15, space_after=2)
+        draw_paragraph("• the severity of the collision", font_size=11, leading=15, space_after=2)
+        draw_paragraph("• the objective diagnostic findings", font_size=11, leading=15, space_after=2)
+        draw_paragraph("• the economic damages sustained", font_size=11, leading=15, space_after=2)
+        draw_paragraph("• the ongoing impact on our client's quality of life", font_size=11, leading=15, space_after=12)
 
-    draw_paragraph(letter_data["conclusion_text"], font_name="Times-Bold", font_size=13, leading=19, space_after=18)
+    draw_paragraph(letter_data["conclusion_text"], font_name="Times-Bold", font_size=11, leading=15, space_after=14)
 
     if letter_data["deadline"]:
-        draw_paragraph(f"This offer will remain open until {letter_data['deadline']}.", font_size=13, leading=19, space_after=18)
+        draw_paragraph(
+            f"This offer will remain open until {letter_data['deadline']}.",
+            font_size=11,
+            leading=15,
+            space_after=14
+        )
+
+    if y < 90:
+        new_page()
+
+    c.setFont("Times-Roman", 9)
+    c.drawString(left_margin, 58, "Mailing Address:")
+    c.drawString(left_margin, 46, "5900 Balcones Drive, #16604")
+    c.drawString(left_margin, 34, "Austin, TX 78731")
 
     c.save()
     buffer.seek(0)
     return buffer
-
 
 def apply_letterhead_overlay(content_pdf_bytes):
     letterhead_path = get_letterhead_pdf_path()
@@ -501,22 +517,28 @@ def apply_letterhead_overlay(content_pdf_bytes):
         content_reader = PdfReader(io.BytesIO(content_pdf_bytes))
         writer = PdfWriter()
 
-        template_count = len(base_reader.pages)
-        if template_count == 0:
+        if len(base_reader.pages) == 0:
             return content_pdf_bytes
 
+        first_template = base_reader.pages[0]
+
         for index, content_page in enumerate(content_reader.pages):
-            template_page = base_reader.pages[min(index, template_count - 1)]
-            merged_page = template_page
-            merged_page.merge_page(content_page)
-            writer.add_page(merged_page)
+            if index == 0:
+                new_page = writer.add_blank_page(
+                    width=first_template.mediabox.width,
+                    height=first_template.mediabox.height
+                )
+                new_page.merge_page(first_template)
+                new_page.merge_page(content_page)
+            else:
+                writer.add_page(content_page)
 
         output = io.BytesIO()
         writer.write(output)
         return output.getvalue()
-    except Exception:
+    except Exception as e:
+        print("PDF overlay error:", e)
         return content_pdf_bytes
-
 
 def build_pdf_bytes(letter_data):
     content_buffer = build_content_pdf(letter_data)
