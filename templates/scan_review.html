@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Review Medical Analysis</title>
+  <style>
+    :root {
+      --gold: #c9a227;
+      --gold-soft: #e3c968;
+      --black: #090909;
+      --white: #ffffff;
+      --offwhite: #f8f7f4;
+      --gray-2: #dfdfdf;
+      --gray-3: #6a6a6a;
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: var(--offwhite);
+      color: var(--black);
+    }
+
+    .hero {
+      background: var(--black);
+      color: var(--white);
+      padding: 30px 24px 40px;
+      border-bottom: 4px solid var(--gold);
+    }
+
+    .hero-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold-soft);
+      margin-bottom: 10px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 44px;
+      font-weight: 400;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 900px;
+      color: rgba(255,255,255,0.86);
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .section {
+      background: var(--white);
+      border: 1px solid var(--gray-2);
+      border-left: 6px solid var(--gold);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      border: 1px solid #d8d2c8;
+      background: #fbfaf8;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .provider-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button, .link-btn {
+      appearance: none;
+      border: none;
+      background: var(--black);
+      color: var(--white);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .gold-btn {
+      background: var(--gold);
+      color: var(--black);
+    }
+
+    .muted {
+      color: var(--gray-3);
+      font-size: 14px;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .grid, .provider-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Texas Ponce Law, PLLC</div>
+      <h1>Review Medical Analysis</h1>
+      <p>Review the extracted provider, chronology, imaging, and treatment narrative before applying the results back into the demand portal.</p>
+    </div>
+  </section>
+
+  <div class="page">
+    <form method="POST">
+      <div class="section">
+        <h2>Core Case Details</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="client_name">Client Name</label>
+            <input type="text" id="client_name" name="client_name" value="{{ data.review.client_name or '' }}">
+          </div>
+
+          <div class="field">
+            <label for="claim_number">Claim Number</label>
+            <input type="text" id="claim_number" name="claim_number" value="{{ data.review.claim_number or '' }}">
+          </div>
+
+          <div class="field">
+            <label for="loss_date">Date of Loss / Key Service Date</label>
+            <input type="text" id="loss_date" name="loss_date" value="{{ data.review.loss_date or '' }}">
+          </div>
+
+          <div class="field full">
+            <label for="facts_of_loss">History / Facts Pulled from Records</label>
+            <textarea id="facts_of_loss" name="facts_of_loss">{{ data.review.facts_of_loss or '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Provider List</h2>
+        <div class="muted">Edit provider names and add bill amounts if available.</div>
+
+        {% if data.review.providers %}
+          {% for row in data.review.providers %}
+            <div class="provider-row">
+              <input type="text" name="provider_name[]" value="{{ row.name or '' }}" placeholder="Provider Name">
+              <input type="text" name="provider_amount[]" value="{{ row.amount or '' }}" placeholder="Amount">
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="provider-row">
+            <input type="text" name="provider_name[]" value="" placeholder="Provider Name">
+            <input type="text" name="provider_amount[]" value="" placeholder="Amount">
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="section">
+        <h2>Treatment Chronology</h2>
+        <textarea readonly>{{ data.review.chronology_text or '' }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>Objective Medical Findings</h2>
+        <textarea readonly>{{ data.review.objective_findings_text or '' }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>Imaging Summary</h2>
+        <textarea readonly>{{ data.review.imaging_summary_text or '' }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>High-Value Medical Indicators</h2>
+        <textarea readonly>{{ data.review.high_value_text or '' }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>Treatment Gaps</h2>
+        <textarea readonly>{{ data.review.treatment_gaps or '' }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>Demand Letter Treatment Section</h2>
+        <div class="muted">This is the main narrative that will be applied to the demand form.</div>
+        <textarea id="treatment_summary" name="treatment_summary">{{ data.review.demand_treatment_section or '' }}</textarea>
+
+        <div class="actions">
+          <button type="submit" class="gold-btn">Apply to Demand Form</button>
+          <a href="/scan-documents" class="link-btn">Back to Upload</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

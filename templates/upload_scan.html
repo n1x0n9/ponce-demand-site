@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan Documents</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: white;
+      color: black;
+      margin: 0;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 800px;
+      margin: 0 auto;
+      border: 1px solid #d4d4d4;
+      border-top: 6px solid #c9a227;
+      border-radius: 10px;
+      padding: 30px;
+      background: white;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    p {
+      line-height: 1.5;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #090909;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      margin-top: 16px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Case Document Scanner</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+      <p>Upload case documents (PDF or DOCX):</p>
+
+        <input type="file" name="documents" accept=".pdf,.docx" multiple required>
+
+      <br><br>
+
+      <button class="btn" type="submit">Scan Documents</button>
+    </form>
+
+    <br>
+
+    <a class="btn" href="/">Back to Portal</a>
+  </div>
+</body>
+</html>

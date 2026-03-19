@@ -1,16 +1,18 @@
-
-from flask import Flask, render_template, request, send_file, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, send_file, jsonify, redirect, flash, session, url_for
 from docx import Document
 from docx.shared import Pt
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
+from document_scanner import extract_text_from_file, simple_extract_data
 import io
 import os
 import re
 import zipfile
+from werkzeug.utils import secure_filename
 
+from werkzeug.utils import secure_filename
 try:
     from pypdf import PdfReader, PdfWriter
 except Exception:
@@ -21,6 +23,8 @@ except Exception:
         PdfWriter = None
 
 app = Flask(__name__)
+UPLOAD_FOLDER = os.path.join(app.root_path, "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.secret_key = "ponce_secret_key"
 USERNAME = "admin"
 PASSWORD = "ponce"
@@ -58,6 +62,53 @@ def parse_money(value):
 
 def money(value):
     return "${:,.2f}".format(value or 0.0)
+
+def unique_join_paragraphs(existing, new_text):
+    existing = clean_text(existing)
+    new_text = clean_text(new_text)
+
+    if not new_text:
+        return existing
+
+    if not existing:
+        return new_text
+
+    existing_parts = [p.strip() for p in existing.split("\n\n") if p.strip()]
+    new_parts = [p.strip() for p in new_text.split("\n\n") if p.strip()]
+
+    seen = {p.lower() for p in existing_parts}
+    for part in new_parts:
+        if part.lower() not in seen:
+            existing_parts.append(part)
+            seen.add(part.lower())
+
+    return "\n\n".join(existing_parts)
+
+
+def dedupe_provider_rows(providers):
+    cleaned = []
+    seen = set()
+
+    for p in providers:
+        name = clean_text(p.get("name") or p.get("provider_name"))
+        amount = clean_text(str(p.get("amount", "")))
+
+        if not name and not amount:
+            continue
+
+        key = re.sub(r"\s+", " ", name).strip().lower()
+        if key and key in seen:
+            continue
+
+        if key:
+            seen.add(key)
+
+        cleaned.append({
+            "name": name,
+            "amount": amount
+        })
+
+    return cleaned
 
 
 def safe_filename(value):
@@ -120,7 +171,7 @@ def build_letter_data(form):
     provider_names = form.getlist("provider_name[]")
     provider_amounts = form.getlist("provider_amount[]")
 
-    providers = []
+    raw_providers = []
     for name, amount in zip(provider_names, provider_amounts):
         clean_name = clean_text(name)
         clean_amount_raw = clean_text(amount)
@@ -128,8 +179,20 @@ def build_letter_data(form):
         if not clean_name and not clean_amount_raw:
             continue
 
+        raw_providers.append({
+            "name": clean_name,
+            "amount": clean_amount_raw
+        })
+
+    deduped_rows = dedupe_provider_rows(raw_providers)
+
+    providers = []
+    for row in deduped_rows:
+        clean_name = clean_text(row.get("name"))
+        clean_amount_raw = clean_text(row.get("amount"))
+
         try:
-            clean_amount = float(clean_amount_raw) if clean_amount_raw else 0.0
+            clean_amount = float(clean_amount_raw.replace(",", "").replace("$", "")) if clean_amount_raw else 0.0
         except ValueError:
             clean_amount = 0.0
 
@@ -263,11 +326,8 @@ def build_docx(letter_data):
     add_paragraph(document, letter_data["liability_text"], font_size=11, space_after=16)
 
     add_paragraph(document, "TREATMENT AND INJURIES", bold=True, font_size=18, space_after=8)
-    treatment_body = (
-        f"Following the collision, {letter_data['client_name'] or 'our client'} experienced immediate and significant pain. "
-        f"{letter_data['treatment_text'] or ''}"
-    ).strip()
-    add_paragraph(document, treatment_body or "N/A", font_size=11, space_after=16)
+    treatment_body = letter_data["treatment_text"] or "N/A"
+    add_paragraph(document, treatment_body, font_size=11, space_after=16)
 
     add_paragraph(document, "PAST MEDICAL EXPENSES", bold=True, font_size=18, space_after=8)
     if letter_data["providers"]:
@@ -455,11 +515,8 @@ def build_content_pdf(letter_data):
     draw_paragraph(letter_data["liability_text"], font_size=13, leading=19, space_after=22)
 
     draw_heading("TREATMENT AND INJURIES")
-    treatment_body = (
-        f"Following the collision, {letter_data['client_name'] or 'our client'} experienced immediate and significant pain. "
-        f"{letter_data['treatment_text'] or ''}"
-    ).strip()
-    draw_paragraph(treatment_body or "N/A", font_size=13, leading=19, space_after=22)
+    treatment_body = letter_data["treatment_text"] or "N/A"
+    draw_paragraph(treatment_body, font_size=13, leading=19, space_after=22)
 
     draw_heading("PAST MEDICAL EXPENSES")
     draw_paragraph("Below is a summary of the medical bills incurred as a result of this collision.", font_size=13, leading=19, space_after=14)
@@ -568,7 +625,9 @@ def login():
 def index():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
-    return render_template("form.html")
+
+    scanned_data = session.pop("scanned_data", None)
+    return render_template("form.html", scanned_data=scanned_data)
 
 
 @app.route("/generate", methods=["POST"])
@@ -628,11 +687,147 @@ def preview_data():
     })
 
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
+@app.route("/scan-documents", methods=["GET", "POST"])
+def scan_documents():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        files = request.files.getlist("documents")
+
+        combined_data = {
+            "client_name": "",
+            "claim_number": "",
+            "loss_date": "",
+            "facts_of_loss": "",
+            "treatment_summary": "",
+            "providers": [],
+            "review": {
+                "client_name": "",
+                "claim_number": "",
+                "loss_date": "",
+                "facts_of_loss": "",
+                "treatment_summary": "",
+                "providers_text": "",
+                "chronology_text": "",
+                "objective_findings_text": "",
+                "imaging_summary_text": "",
+                "high_value_text": "",
+                "treatment_gaps": "",
+                "demand_treatment_section": "",
+                "providers": []
+            }
+        }
+
+        for file in files:
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                lower_name = filename.lower()
+
+                if not (lower_name.endswith(".pdf") or lower_name.endswith(".docx")):
+                    continue
+
+                filepath = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(filepath)
+
+                text = extract_text_from_file(filepath)
+                data = simple_extract_data(text)
+
+                if data.get("client_name") and not combined_data["client_name"]:
+                    combined_data["client_name"] = data["client_name"]
+                    combined_data["review"]["client_name"] = data["review"]["client_name"]
+
+                if data.get("claim_number") and not combined_data["claim_number"]:
+                    combined_data["claim_number"] = data["claim_number"]
+                    combined_data["review"]["claim_number"] = data["review"]["claim_number"]
+
+                if data.get("loss_date") and not combined_data["loss_date"]:
+                    combined_data["loss_date"] = data["loss_date"]
+                    combined_data["review"]["loss_date"] = data["review"]["loss_date"]
+
+                if data.get("facts_of_loss"):
+                    combined_data["facts_of_loss"] = unique_join_paragraphs(
+                        combined_data["facts_of_loss"],
+                        data["facts_of_loss"]
+                    )
+                    combined_data["review"]["facts_of_loss"] = combined_data["facts_of_loss"]
+
+                if data.get("treatment_summary"):
+                    combined_data["treatment_summary"] = unique_join_paragraphs(
+                        combined_data["treatment_summary"],
+                        data["treatment_summary"]
+                    )
+                    combined_data["review"]["treatment_summary"] = combined_data["treatment_summary"]
+
+                for p in data.get("providers", []):
+                    combined_data["providers"].append(p)
+
+                combined_data["providers"] = dedupe_provider_rows(combined_data["providers"])
+                combined_data["review"]["providers"] = combined_data["providers"]
+
+                for key in [
+                    "providers_text",
+                    "chronology_text",
+                    "objective_findings_text",
+                    "imaging_summary_text",
+                    "high_value_text"
+                ]:
+                    new_text = clean_text(data["review"].get(key, ""))
+                    if new_text:
+                        combined_data["review"][key] = unique_join_paragraphs(
+                            combined_data["review"][key],
+                            new_text
+                        )
+
+                if data["review"].get("treatment_gaps"):
+                    combined_data["review"]["treatment_gaps"] = data["review"]["treatment_gaps"]
+
+        if combined_data["treatment_summary"]:
+            combined_data["review"]["demand_treatment_section"] = combined_data["treatment_summary"]
+
+        session["scan_review_data"] = combined_data
+        return redirect(url_for("scan_review"))
+
+    return render_template("upload_scan.html")
+
+@app.route("/scan-review", methods=["GET", "POST"])
+def scan_review():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    data = session.get("scan_review_data")
+
+    if not data:
+        return redirect(url_for("scan_documents"))
+
+    if request.method == "POST":
+        applied = {
+            "client_name": request.form.get("client_name", "").strip(),
+            "claim_number": request.form.get("claim_number", "").strip(),
+            "loss_date": request.form.get("loss_date", "").strip(),
+            "facts_of_loss": request.form.get("facts_of_loss", "").strip(),
+            "treatment_summary": request.form.get("treatment_summary", "").strip(),
+            "providers": []
+        }
+
+        provider_names = request.form.getlist("provider_name[]")
+        provider_amounts = request.form.getlist("provider_amount[]")
+
+        for name, amount in zip(provider_names, provider_amounts):
+            name = name.strip()
+            amount = amount.strip()
+            if name or amount:
+                applied["providers"].append({
+                    "name": name,
+                    "amount": amount
+                })
+
+        session["scanned_data"] = applied
+        session.pop("scan_review_data", None)
+        return redirect(url_for("index"))
+
+    return render_template("scan_review.html", data=data)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True)    

@@ -26,371 +26,289 @@
       box-sizing: border-box;
     }
 
-    html {
-      scroll-behavior: smooth;
-    }
-
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #f3f1eb 0%, #f9f8f5 100%);
-      color: #111;
+      font-family: Georgia, "Times New Roman", serif;
+      background: var(--offwhite);
+      color: var(--black);
     }
 
     .hero {
-      background: linear-gradient(180deg, #050505 0%, #101010 100%);
+      background: var(--black);
       color: var(--white);
       padding: 34px 24px 56px;
       border-bottom: 4px solid var(--gold);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
     }
 
     .hero-inner {
-      max-width: 1180px;
+      max-width: 1320px;
       margin: 0 auto;
     }
 
     .brand-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 20px;
     }
 
-    .brand-block {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .brand-block h1 {
+      margin: 0 0 14px;
+      font-size: 58px;
+      line-height: 0.95;
+      font-weight: 400;
     }
 
     .eyebrow {
-      color: var(--gold-soft);
       text-transform: uppercase;
       letter-spacing: 0.18em;
       font-size: 12px;
       font-weight: 700;
+      color: var(--gold-soft);
+      margin-bottom: 12px;
     }
 
-    .hero h1 {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 52px;
-      line-height: 1.02;
-      font-weight: 500;
-    }
-
-    .hero p {
-      margin: 10px 0 0;
-      color: rgba(255,255,255,0.82);
-      font-size: 16px;
+    .brand-block p {
       max-width: 760px;
+      font-size: 16px;
       line-height: 1.6;
+      color: rgba(255,255,255,0.86);
+      margin: 0;
+    }
+
+    .hero-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .scan-btn {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--black);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .scan-btn:hover {
+      background: var(--gold-soft);
     }
 
     .hero-pill {
+      border: 1px solid rgba(255,255,255,0.18);
       background: rgba(255,255,255,0.08);
       color: var(--white);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 999px;
       padding: 14px 18px;
+      border-radius: 999px;
       font-size: 14px;
       font-weight: 700;
-      backdrop-filter: blur(8px);
+      white-space: nowrap;
     }
 
     .page {
-      max-width: 1180px;
-      margin: -28px auto 0;
-      padding: 0 20px 70px;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px;
     }
 
     .summary-strip {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 22px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: -34px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 5;
     }
 
     .summary-card {
-      background: rgba(255,255,255,0.92);
-      border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 20px;
-      padding: 18px;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 24px;
+      padding: 22px;
       box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
     }
 
     .summary-card .label {
-      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--gray-3);
-      margin-bottom: 8px;
+      letter-spacing: 0.14em;
+      font-size: 12px;
       font-weight: 700;
+      color: var(--gray-3);
+      margin-bottom: 10px;
     }
 
     .summary-card .value {
       font-size: 22px;
-      font-weight: 800;
+      font-weight: 700;
       color: var(--black);
     }
 
     .layout {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .section {
-      background: rgba(255,255,255,0.95);
-      border: 1px solid rgba(0,0,0,0.06);
-      border-left: 7px solid var(--gold);
-      border-radius: var(--radius-xl);
-      padding: 24px;
-      margin-bottom: 18px;
+      background: var(--white);
+      border: 1px solid var(--gray-2);
+      border-left: 6px solid var(--gold);
+      border-radius: 26px;
+      padding: 28px;
       box-shadow: var(--shadow);
     }
 
     .section h2 {
-      margin: 0 0 16px;
-      font-size: 23px;
-      color: var(--black);
+      margin: 0 0 12px;
+      font-size: 24px;
+      line-height: 1.15;
     }
 
-    .section-subtext {
+    .section-subtext,
+    .helper-text,
+    .muted-note {
       color: var(--gray-3);
+      margin-bottom: 18px;
       font-size: 14px;
-      margin-top: -8px;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
-    .field {
-      margin-bottom: 16px;
-    }
-
-    .field:last-child {
-      margin-bottom: 0;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 700;
-      font-size: 14px;
-      color: #101010;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    textarea {
-      width: 100%;
-      border: 1px solid #d9d7d1;
-      border-radius: 16px;
-      padding: 15px 16px;
-      font-size: 15px;
-      background: #fff;
-      color: var(--black);
-      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.08s ease;
-      outline: none;
-    }
-
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    textarea:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.14);
-    }
-
-    textarea {
-      min-height: 128px;
-      resize: vertical;
-      line-height: 1.6;
+      line-height: 1.55;
     }
 
     .two-col {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 6px;
     }
 
-    .three-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
     }
 
-    .hint {
-      margin-top: 8px;
-      color: var(--gray-3);
-      font-size: 13px;
+    .field label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.3;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid #d8d2c8;
+      background: #fbfaf8;
+      border-radius: 18px;
+      padding: 16px 18px;
+      font-size: 16px;
+      font-family: inherit;
+      color: var(--black);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.12);
+    }
+
+    textarea {
+      min-height: 136px;
+      resize: vertical;
+      line-height: 1.6;
     }
 
     .provider-row {
       display: grid;
-      grid-template-columns: 1.8fr 1fr auto;
+      grid-template-columns: 1.5fr 1fr auto;
       gap: 12px;
-      align-items: end;
       margin-bottom: 12px;
-    }
-
-    .provider-actions {
-      margin-top: 8px;
-    }
-
-    .btn {
-      appearance: none;
-      border: none;
-      border-radius: 999px;
-      padding: 13px 18px;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.12s ease, box-shadow 0.16s ease, opacity 0.16s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .btn-dark {
-      background: var(--black);
-      color: var(--white);
-      box-shadow: 0 10px 18px rgba(0,0,0,0.14);
-    }
-
-    .btn-dark:hover {
-      background: #1a1a1a;
-    }
-
-    .btn-gold {
-      background: linear-gradient(180deg, #e3c968 0%, #c9a227 100%);
-      color: var(--black);
-      box-shadow: 0 10px 18px rgba(201,162,39,0.22);
-    }
-
-    .btn-gold:hover {
-      background: linear-gradient(180deg, #ebd47a 0%, #d0aa31 100%);
-    }
-
-    .btn-danger {
-      background: #fff1f1;
-      color: #b42318;
-      border: 1px solid #f3b8b8;
-      padding: 12px 14px;
-    }
-
-    .calc-box {
-      margin-top: 16px;
-      background: linear-gradient(180deg, #fcfbf7 0%, #f7f4ea 100%);
-      border: 1px solid #e6dfc3;
-      border-radius: 22px;
-      padding: 18px;
+      align-items: center;
     }
 
     .checkbox-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-top: 4px;
-      font-weight: 700;
+      margin: 12px 0 10px;
+      font-weight: 600;
+      color: var(--black);
     }
 
     .checkbox-row input {
-      transform: scale(1.16);
+      width: 18px;
+      height: 18px;
+      accent-color: var(--gold);
     }
 
-    .policy-note {
-      margin-top: 12px;
-      background: rgba(201,162,39,0.12);
-      border: 1px solid rgba(201,162,39,0.40);
-      color: #473608;
-      border-radius: 16px;
-      padding: 12px 14px;
+    .inline-stats {
+      margin-top: 10px;
       font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .calc-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 14px;
-    }
-
-    .calc-item {
-      background: white;
-      border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 18px;
-      padding: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-    }
-
-    .calc-item .title {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
       color: var(--gray-3);
-      font-weight: 800;
-      margin-bottom: 10px;
+      line-height: 1.6;
     }
 
-    .calc-item .value {
-      font-size: 28px;
-      font-weight: 900;
+    .inline-stats strong {
       color: var(--black);
-      line-height: 1.1;
     }
 
-    .subtotal-line {
-      margin-top: 12px;
-      font-size: 14px;
-      color: var(--gray-3);
-      font-weight: 700;
-    }
-
-    .action-panel {
-      position: sticky;
-      bottom: 18px;
-      z-index: 20;
-      margin-top: 28px;
-    }
-
-    .action-shell {
-      background: rgba(9,9,9,0.94);
-      color: white;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 20px 36px rgba(0,0,0,0.18);
-      padding: 14px 16px;
+    .action-row {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
+      align-items: center;
+      margin-top: 8px;
     }
 
-    .action-copy {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    button,
+    .button-like {
+      appearance: none;
+      border: none;
+      background: var(--black);
+      color: var(--white);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
     }
 
-    .action-copy strong {
-      font-size: 16px;
+    button:hover,
+    .button-like:hover {
+      opacity: 0.95;
     }
 
-    .action-copy span {
-      color: rgba(255,255,255,0.74);
-      font-size: 13px;
+    .gold-btn {
+      background: var(--gold);
+      color: var(--black);
     }
 
-    .success-card {
+    .gold-btn:hover {
+      background: var(--gold-soft);
+    }
+
+    .success-card,
+    .loading-state {
       display: none;
-      margin-top: 22px;
-      background: linear-gradient(180deg, #ffffff 0%, #fbfaf5 100%);
-      border: 1px solid rgba(201,162,39,0.32);
-      border-left: 7px solid var(--gold);
-      border-radius: 24px;
-      padding: 22px;
+      margin-top: 18px;
+      background: var(--white);
+      border: 1px solid var(--gray-2);
+      border-radius: 18px;
+      padding: 18px;
       box-shadow: var(--shadow);
     }
 
@@ -403,41 +321,53 @@
       font-size: 22px;
     }
 
-    .success-card p {
-      margin: 0;
+    .loading-state {
       color: var(--gray-3);
-      line-height: 1.6;
     }
 
-    .loading-state {
-      display: none;
-      margin-top: 14px;
-      color: var(--gray-3);
-      font-size: 14px;
-      font-weight: 700;
+    .hidden {
+      display: none !important;
     }
 
     @media (max-width: 980px) {
       .summary-strip {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .provider-row {
+        grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 760px) {
-      .hero h1 {
+      .brand-row {
+        flex-direction: column;
+      }
+
+      .hero-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .brand-block h1 {
         font-size: 38px;
       }
 
-      .two-col,
-      .three-col,
-      .provider-row,
-      .calc-grid,
-      .summary-strip {
-        grid-template-columns: 1fr;
+      .page {
+        padding: 16px;
       }
 
-      .action-shell {
-        border-radius: 26px;
+      .summary-strip {
+        grid-template-columns: 1fr;
+        margin-top: 18px;
+      }
+
+      .section {
+        padding: 20px;
       }
     }
   </style>
@@ -451,7 +381,11 @@
           <h1>Demand Portal</h1>
           <p>Build polished demand letters in a clean waterfall workflow with branded presentation and downloadable DOCX output.</p>
         </div>
-        <div class="hero-pill">Black / Gold Internal Workflow</div>
+
+        <div class="hero-right">
+          <a href="/scan-documents" class="scan-btn">Scan Documents</a>
+          <div class="hero-pill">Black / Gold Internal Workflow</div>
+        </div>
       </div>
     </div>
   </section>
@@ -543,201 +477,209 @@
       </div>
 
       <div class="section">
-        <h2>Medical Bills & Settlement Calculator</h2>
-        <div class="section-subtext">Add provider rows below. Medical expenses will auto-total from provider amounts when entered.</div>
+        <h2>Medical Bills &amp; Settlement Calculator</h2>
+        <div class="helper-text">Add provider rows below. Medical expenses will auto-total from provider amounts when entered.</div>
 
         <div id="providerRows">
           <div class="provider-row">
-            <div class="field">
-              <label>Provider Name</label>
-              <input type="text" name="provider_name[]" placeholder="Provider Name">
-            </div>
-            <div class="field">
-              <label>Amount</label>
-              <input type="number" step="0.01" min="0" name="provider_amount[]" class="provider-amount" placeholder="0.00">
-            </div>
-            <button type="button" class="btn btn-danger" onclick="removeProviderRow(this)">Remove</button>
+            <input type="text" name="provider_name[]" placeholder="Provider Name">
+            <input type="number" name="provider_amount[]" placeholder="0.00" step="0.01" min="0">
+            <button type="button" class="remove-provider">Remove</button>
           </div>
         </div>
 
-        <div class="provider-actions">
-          <button type="button" class="btn btn-gold" onclick="addProviderRow()">+ Add Provider Row</button>
+        <div class="action-row">
+          <button type="button" id="addProviderRow">+ Add Provider Row</button>
         </div>
 
-        <div class="subtotal-line">Provider subtotal: <span id="providerSubtotal">$0.00</span></div>
+        <div class="inline-stats">
+          Provider subtotal: <strong id="providerSubtotal">$0.00</strong>
+        </div>
 
-        <div class="calc-box">
-          <div class="three-col">
-            <div class="field">
-              <label for="medical_expenses">Medical Expenses</label>
-              <input type="number" step="0.01" min="0" id="medical_expenses" name="medical_expenses" value="0">
-            </div>
+        <div class="field">
+          <label for="medical_expenses">Medical Expenses</label>
+          <input type="number" id="medical_expenses" name="medical_expenses" value="0" step="0.01" min="0">
+        </div>
 
-            <div class="field">
-              <label for="lost_wages">Lost Wages</label>
-              <input type="number" step="0.01" min="0" id="lost_wages" name="lost_wages" value="0">
-            </div>
+        <div class="field">
+          <label for="lost_wages">Lost Wages</label>
+          <input type="number" id="lost_wages" name="lost_wages" value="0" step="0.01" min="0">
+        </div>
 
-            <div class="field">
-              <label for="multiplier">Multiplier</label>
-              <input type="number" step="0.1" min="1" id="multiplier" name="multiplier" value="3">
-            </div>
-          </div>
+        <div class="field">
+          <label for="multiplier">Multiplier</label>
+          <input type="number" id="multiplier" name="multiplier" value="3" step="0.1" min="0">
+        </div>
 
-          <div class="checkbox-row">
-            <input type="checkbox" id="policy_limit_demand" name="policy_limit_demand" value="yes">
-            <label for="policy_limit_demand" style="margin:0;">Policy Limit Demand</label>
-          </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="policy_limit_demand" name="policy_limit_demand">
+          <label for="policy_limit_demand">Policy Limit Demand</label>
+        </div>
 
-          <div id="policyNote" class="policy-note" style="display:none;">
-            Policy Limit Demand is enabled. This demand will request all available policy limits instead of a dollar settlement amount.
-          </div>
-
-          <div class="calc-grid">
-            <div class="calc-item">
-              <div class="title">Suggested Settlement</div>
-              <div class="value" id="suggestedSettlementDisplay">$0.00</div>
-            </div>
-
-            <div class="calc-item">
-              <div class="title">Total Special / Economic Damages</div>
-              <div class="value" id="economicTotalDisplay">$0.00</div>
-            </div>
-           </div>
-          </div>
+        <div class="inline-stats">
+          Suggested Settlement: <strong id="suggestedSettlementInline">$0.00</strong><br>
+          Total Special / Economic Damages: <strong id="totalEconomicInline">$0.00</strong>
+        </div>
+      </div>
 
       <div class="section">
         <h2>Damages Explanation</h2>
         <div class="field">
-          <label for="damages_explanation">Short Bottom Damages Explanation</label>
-          <textarea id="damages_explanation" name="damages_explanation" placeholder="Keep this short and clean for the bottom of the demand letter."></textarea>
+          <label for="bottom_damages_explanation">Short Bottom Damages Explanation</label>
+          <textarea id="bottom_damages_explanation" name="bottom_damages_explanation" placeholder="Keep this short and clean for the bottom of the demand letter."></textarea>
         </div>
-      </div>
 
-      <div class="action-panel">
-        <div class="action-shell">
-          <div class="action-copy">
-            <strong>Generate the final demand letter</strong>
-            <span>Review the numbers, then download a polished DOCX file.</span>
-          </div>
-          <button type="submit" id="generateBtn" class="btn btn-gold">Generate DOCX</button>
+        <div class="muted-note">
+          Generate the final demand letter. Review the numbers, then download a polished DOCX file.
         </div>
-      </div>
 
-      <div id="loadingState" class="loading-state">Generating DOCX and starting download...</div>
+        <div class="action-row">
+          <button type="submit" id="generateBtn">Generate DOCX</button>
+        </div>
 
-      <div id="successCard" class="success-card">
-        <h3>Demand letter generated successfully</h3>
-        <p>Your DOCX file download should have started. Check your browser’s default download location if it does not appear immediately.</p>
+        <div class="loading-state" id="loadingState">
+          Generating DOCX and starting download...
+        </div>
+
+        <div class="success-card" id="successCard">
+          <h3>Demand letter generated successfully</h3>
+          <p>Your DOCX file download should have started. Check your browser's default download location if it does not appear immediately.</p>
+        </div>
       </div>
     </form>
   </div>
 
   <script>
-    function currencyFormat(value) {
+    const scannedData = {{ scanned_data | tojson if scanned_data else 'null' }};
+  </script>
+
+  <script>
+    function money(value) {
       const num = Number(value || 0);
-      return num.toLocaleString('en-US', {
-        style: 'currency',
-        currency: 'USD'
-      });
+      return '$' + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    function getNumericValue(id) {
-      const val = parseFloat(document.getElementById(id).value);
-      return isNaN(val) ? 0 : val;
-    }
-
-    function sumProviderAmounts() {
+    function getProviderTotal() {
       let total = 0;
-      document.querySelectorAll('.provider-amount').forEach(input => {
-        const val = parseFloat(input.value);
-        total += isNaN(val) ? 0 : val;
+      document.querySelectorAll('input[name="provider_amount[]"]').forEach(input => {
+        total += Number(input.value || 0);
       });
       return total;
     }
 
     function updateCalculator() {
-      const providerTotal = sumProviderAmounts();
-      const medicalField = document.getElementById('medical_expenses');
-      const lostWages = getNumericValue('lost_wages');
-      const multiplier = getNumericValue('multiplier');
-      const isPolicyLimit = document.getElementById('policy_limit_demand').checked;
+      const providerTotal = getProviderTotal();
+      const medicalInput = document.getElementById('medical_expenses');
+      const wagesInput = document.getElementById('lost_wages');
+      const multiplierInput = document.getElementById('multiplier');
+      const policyLimitCheckbox = document.getElementById('policy_limit_demand');
 
       if (providerTotal > 0) {
-        medicalField.value = providerTotal.toFixed(2);
+        medicalInput.value = providerTotal.toFixed(2);
       }
 
-      const medicalExpenses = getNumericValue('medical_expenses');
-      const economicTotal = medicalExpenses + lostWages;
-      const suggestedSettlement = economicTotal * multiplier;
+      const medical = Number(medicalInput.value || 0);
+      const wages = Number(wagesInput.value || 0);
+      const multiplier = Number(multiplierInput.value || 0);
 
-      document.getElementById('providerSubtotal').textContent = currencyFormat(providerTotal);
-      document.getElementById('economicTotalDisplay').textContent = currencyFormat(economicTotal);
-      document.getElementById('suggestedSettlementDisplay').textContent = isPolicyLimit
-        ? 'Policy Limits'
-        : currencyFormat(suggestedSettlement);
+      const totalEconomic = medical + wages;
+      const suggested = policyLimitCheckbox.checked ? 0 : (totalEconomic * multiplier);
 
-      document.getElementById('policyNote').style.display = isPolicyLimit ? 'block' : 'none';
-
-      document.getElementById('summaryDemandType').textContent = isPolicyLimit ? 'Policy Limits Demand' : 'Settlement Demand';
-      document.getElementById('summaryMedical').textContent = currencyFormat(medicalExpenses);
-      document.getElementById('summaryWages').textContent = currencyFormat(lostWages);
-      document.getElementById('summarySettlement').textContent = isPolicyLimit
-        ? 'Policy Limits'
-        : currencyFormat(suggestedSettlement);
+      document.getElementById('providerSubtotal').textContent = money(providerTotal);
+      document.getElementById('summaryMedical').textContent = money(medical);
+      document.getElementById('summaryWages').textContent = money(wages);
+      document.getElementById('summaryDemandType').textContent = policyLimitCheckbox.checked ? 'Policy Limit Demand' : 'Settlement Demand';
+      document.getElementById('summarySettlement').textContent = policyLimitCheckbox.checked ? 'Policy Limits' : money(suggested);
+      document.getElementById('suggestedSettlementInline').textContent = policyLimitCheckbox.checked ? 'Policy Limits' : money(suggested);
+      document.getElementById('totalEconomicInline').textContent = money(totalEconomic);
     }
 
-    function addProviderRow() {
+    function bindProviderListeners() {
+      document.querySelectorAll('input[name="provider_amount[]"]').forEach(input => {
+        input.removeEventListener('input', updateCalculator);
+        input.addEventListener('input', updateCalculator);
+      });
+
+      document.querySelectorAll('.remove-provider').forEach(button => {
+        button.onclick = function () {
+          const rows = document.querySelectorAll('#providerRows .provider-row');
+          if (rows.length > 1) {
+            button.closest('.provider-row').remove();
+            updateCalculator();
+          } else {
+            const row = button.closest('.provider-row');
+            row.querySelector('input[name="provider_name[]"]').value = '';
+            row.querySelector('input[name="provider_amount[]"]').value = '';
+            updateCalculator();
+          }
+        };
+      });
+    }
+
+    function applyScannedData() {
+      if (!scannedData) return;
+
+      if (scannedData.client_name) {
+        document.getElementById('client_name').value = scannedData.client_name;
+      }
+
+      if (scannedData.claim_number) {
+        document.getElementById('claim_number').value = scannedData.claim_number;
+      }
+
+      if (scannedData.loss_date) {
+        document.getElementById('loss_date').value = scannedData.loss_date;
+      }
+
+      if (scannedData.facts_of_loss) {
+        document.getElementById('facts_of_loss').value = scannedData.facts_of_loss;
+      }
+
+      if (scannedData.treatment_summary) {
+        document.getElementById('treatment_summary').value = scannedData.treatment_summary;
+      }
+
+      if (Array.isArray(scannedData.providers) && scannedData.providers.length) {
+        const wrapper = document.getElementById('providerRows');
+        wrapper.innerHTML = '';
+
+        scannedData.providers.forEach((provider) => {
+          const row = document.createElement('div');
+          row.className = 'provider-row';
+          row.innerHTML = `
+            <input type="text" name="provider_name[]" placeholder="Provider Name" value="${provider.name || ''}">
+            <input type="number" name="provider_amount[]" placeholder="0.00" step="0.01" min="0" value="${provider.amount || ''}">
+            <button type="button" class="remove-provider">Remove</button>
+          `;
+          wrapper.appendChild(row);
+        });
+      }
+    }
+
+    document.getElementById('addProviderRow').addEventListener('click', function () {
       const wrapper = document.getElementById('providerRows');
       const row = document.createElement('div');
       row.className = 'provider-row';
       row.innerHTML = `
-        <div class="field">
-          <label>Provider Name</label>
-          <input type="text" name="provider_name[]" placeholder="Provider Name">
-        </div>
-        <div class="field">
-          <label>Amount</label>
-          <input type="number" step="0.01" min="0" name="provider_amount[]" class="provider-amount" placeholder="0.00">
-        </div>
-        <button type="button" class="btn btn-danger" onclick="removeProviderRow(this)">Remove</button>
+        <input type="text" name="provider_name[]" placeholder="Provider Name">
+        <input type="number" name="provider_amount[]" placeholder="0.00" step="0.01" min="0">
+        <button type="button" class="remove-provider">Remove</button>
       `;
       wrapper.appendChild(row);
       bindProviderListeners();
-      const inputs = row.querySelectorAll('input');
-      if (inputs.length > 0) {
-        inputs[0].focus();
-      }
-      updateCalculator();
-    }
+    });
 
-    function removeProviderRow(button) {
-      const rows = document.querySelectorAll('#providerRows .provider-row');
-      if (rows.length > 1) {
-        button.parentElement.remove();
-      } else {
-        button.parentElement.querySelector('input[name="provider_name[]"]').value = '';
-        button.parentElement.querySelector('input[name="provider_amount[]"]').value = '';
-      }
-      updateCalculator();
-    }
+    document.getElementById('medical_expenses').addEventListener('input', updateCalculator);
+    document.getElementById('lost_wages').addEventListener('input', updateCalculator);
+    document.getElementById('multiplier').addEventListener('input', updateCalculator);
+    document.getElementById('policy_limit_demand').addEventListener('change', updateCalculator);
 
-    function bindProviderListeners() {
-      document.querySelectorAll('.provider-amount').forEach(input => {
-        input.removeEventListener('input', updateCalculator);
-        input.addEventListener('input', updateCalculator);
-      });
-    }
+    document.getElementById('demandForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-    async function handleFormSubmit(event) {
-      event.preventDefault();
-
-      const form = document.getElementById('demandForm');
       const button = document.getElementById('generateBtn');
       const loadingState = document.getElementById('loadingState');
       const successCard = document.getElementById('successCard');
-
-      updateCalculator();
 
       button.disabled = true;
       button.textContent = 'Generating...';
@@ -745,8 +687,9 @@
       successCard.classList.remove('show');
 
       try {
-        const formData = new FormData(form);
-        const response = await fetch('/generate', {
+        const formData = new FormData(e.target);
+
+        const response = await fetch('/generate_docx', {
           method: 'POST',
           body: formData
         });
@@ -784,14 +727,9 @@
         button.textContent = 'Generate DOCX';
         loadingState.style.display = 'none';
       }
-    }
+    });
 
-    document.getElementById('medical_expenses').addEventListener('input', updateCalculator);
-    document.getElementById('lost_wages').addEventListener('input', updateCalculator);
-    document.getElementById('multiplier').addEventListener('input', updateCalculator);
-    document.getElementById('policy_limit_demand').addEventListener('change', updateCalculator);
-    document.getElementById('demandForm').addEventListener('submit', handleFormSubmit);
-
+    applyScannedData();
     bindProviderListeners();
     updateCalculator();
   </script>
