@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ponce Demand Portal - Step 3</title>
+  <style>
+    :root {
+      --gold: #c9a227;
+      --gold-soft: #e3c968;
+      --gold-dark: #9f7f1c;
+      --black: #090909;
+      --white: #ffffff;
+      --gray: #f5f5f5;
+      --border: #d9d9d9;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: #111111;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 24px 50px;
+    }
+
+    .topbar {
+      background: var(--black);
+      color: var(--gold-soft);
+      padding: 18px 24px;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .step-label {
+      margin: 18px 0 22px;
+      color: var(--gold-dark);
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--white);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: var(--black);
+      font-size: 22px;
+    }
+
+    .subtext {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #222;
+    }
+
+    .field textarea,
+    .provider-row input {
+      width: 100%;
+      border: 1px solid #cfcfcf;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 320px;
+      line-height: 1.5;
+    }
+
+    .provider-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr auto;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--black);
+    }
+
+    .btn-black {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--black);
+      border: 1px solid #bdbdbd;
+    }
+
+    @media (max-width: 980px) {
+      .provider-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">Ponce Demand Portal</div>
+
+  <div class="page">
+    <div class="step-label">Step 3 · Treatment and Providers</div>
+
+    <form method="POST">
+      <div class="card">
+        <h2>Refine Treatment Summary</h2>
+        <div class="subtext">
+          Clean up the treatment section so it reads polished, organized, and demand-letter ready.
+        </div>
+
+        <div class="field">
+          <label>Treatment Summary</label>
+          <textarea name="treatment_summary">{{ treatment_summary or '' }}</textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Provider Rows</h2>
+        <div class="subtext">
+          Add, remove, or edit provider rows exactly like the main demand form.
+        </div>
+
+        <div id="providerRows">
+          {% if providers %}
+            {% for p in providers %}
+              <div class="provider-row">
+                <input type="text" name="provider_name[]" value="{{ p.name or '' }}" placeholder="Provider Name">
+                <input type="text" name="provider_amount[]" value="{{ p.amount or '' }}" placeholder="Amount">
+                <button type="button" class="btn btn-outline remove-provider">Remove</button>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="provider-row">
+              <input type="text" name="provider_name[]" placeholder="Provider Name">
+              <input type="text" name="provider_amount[]" placeholder="Amount">
+              <button type="button" class="btn btn-outline remove-provider">Remove</button>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="actions">
+          <button type="button" id="addProviderRow" class="btn btn-gold">+ Add Provider Row</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a href="/intake-step-2" class="btn btn-outline">Back to Step 2</a>
+        <button type="submit" class="btn btn-black">Save and Continue to Step 4</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function bindProviderListeners() {
+      document.querySelectorAll('.remove-provider').forEach(button => {
+        button.onclick = function () {
+          const rows = document.querySelectorAll('#providerRows .provider-row');
+          if (rows.length > 1) {
+            button.closest('.provider-row').remove();
+          } else {
+            const row = button.closest('.provider-row');
+            row.querySelector('input[name="provider_name[]"]').value = '';
+            row.querySelector('input[name="provider_amount[]"]').value = '';
+          }
+        };
+      });
+    }
+
+    document.getElementById('addProviderRow').addEventListener('click', function () {
+      const wrapper = document.getElementById('providerRows');
+      const row = document.createElement('div');
+      row.className = 'provider-row';
+      row.innerHTML = `
+        <input type="text" name="provider_name[]" placeholder="Provider Name">
+        <input type="text" name="provider_amount[]" placeholder="Amount">
+        <button type="button" class="btn btn-outline remove-provider">Remove</button>
+      `;
+      wrapper.appendChild(row);
+      bindProviderListeners();
+    });
+
+    bindProviderListeners();
+  </script>
+</body>
+</html>

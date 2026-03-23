@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ponce Demand Portal - Step 4</title>
+  <style>
+    :root {
+      --gold: #c9a227;
+      --gold-soft: #e3c968;
+      --gold-dark: #9f7f1c;
+      --black: #090909;
+      --white: #ffffff;
+      --gray: #f5f5f5;
+      --border: #d9d9d9;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: #111111;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 24px 50px;
+    }
+
+    .topbar {
+      background: var(--black);
+      color: var(--gold-soft);
+      padding: 18px 24px;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .step-label {
+      margin: 18px 0 22px;
+      color: var(--gold-dark);
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--white);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: var(--black);
+      font-size: 22px;
+    }
+
+    .subtext {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #222;
+    }
+
+    .field input[type="text"],
+    .field input[type="number"],
+    .field textarea {
+      width: 100%;
+      border: 1px solid #cfcfcf;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 320px;
+      line-height: 1.5;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 10px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .inline-stats {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .inline-stats strong {
+      color: #111;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--black);
+    }
+
+    .btn-black {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--black);
+      border: 1px solid #bdbdbd;
+    }
+
+    @media (max-width: 980px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">Ponce Demand Portal</div>
+
+  <div class="page">
+    <div class="step-label">Step 4 · Demand Positioning</div>
+
+    <form method="POST">
+      <div class="two-col">
+        <div class="card">
+          <h2>Non-Economic Damages</h2>
+          <div class="subtext">
+            Enter the polished pain and suffering / quality-of-life narrative for the final demand package.
+          </div>
+
+          <div class="field">
+            <label>Non-Economic Damages Narrative</label>
+            <textarea name="non_economic">{{ non_economic or '' }}</textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Settlement Logic</h2>
+          <div class="subtext">
+            Use the full calculator here just like the main demand form.
+          </div>
+
+          <div class="field">
+            <label>Medical Expenses</label>
+            <input type="number" id="medical_expenses" name="medical_expenses" value="{{ medical_expenses or '0.00' }}" step="0.01" min="0">
+          </div>
+
+          <div class="field">
+            <label>Lost Wages</label>
+            <input type="number" id="lost_wages" name="lost_wages" value="{{ lost_wages or '0.00' }}" step="0.01" min="0">
+          </div>
+
+          <div class="field">
+            <label>Multiplier</label>
+            <input type="number" id="multiplier" name="multiplier" value="{{ multiplier or '3' }}" step="0.1" min="0">
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="policy_limit" name="policy_limit" {% if policy_limit %}checked{% endif %}>
+            <label for="policy_limit">Policy Limits Demand</label>
+          </div>
+
+          <div class="inline-stats">
+            Suggested Settlement: <strong id="suggestedSettlementInline">$0.00</strong><br>
+            Total Special / Economic Damages: <strong id="totalEconomicInline">$0.00</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a href="/intake-step-3" class="btn btn-outline">Back to Step 3</a>
+        <button type="submit" class="btn btn-black">Continue to Final Review</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function money(value) {
+      const num = Number(value || 0);
+      return '$' + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function updateCalculator() {
+      const medical = Number(document.getElementById('medical_expenses').value || 0);
+      const wages = Number(document.getElementById('lost_wages').value || 0);
+      const multiplier = Number(document.getElementById('multiplier').value || 0);
+      const policyLimit = document.getElementById('policy_limit').checked;
+
+      const totalEconomic = medical + wages;
+      const suggested = policyLimit ? 0 : totalEconomic * multiplier;
+
+      document.getElementById('totalEconomicInline').textContent = money(totalEconomic);
+      document.getElementById('suggestedSettlementInline').textContent = policyLimit ? 'Policy Limits' : money(suggested);
+    }
+
+    document.getElementById('medical_expenses').addEventListener('input', updateCalculator);
+    document.getElementById('lost_wages').addEventListener('input', updateCalculator);
+    document.getElementById('multiplier').addEventListener('input', updateCalculator);
+    document.getElementById('policy_limit').addEventListener('change', updateCalculator);
+
+    updateCalculator();
+  </script>
+</body>
+</html>

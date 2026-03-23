@@ -79,10 +79,9 @@
     .hero-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       flex-wrap: wrap;
       justify-content: flex-end;
-      max-width: 520px;
     }
 
     .scan-btn {
@@ -94,32 +93,10 @@
       font-weight: 700;
       text-decoration: none;
       white-space: nowrap;
-      transition: 0.18s ease;
-      border: 1px solid transparent;
     }
 
     .scan-btn:hover {
       background: var(--gold-soft);
-    }
-
-    .scan-btn.alt {
-      background: rgba(255,255,255,0.10);
-      color: var(--white);
-      border-color: rgba(255,255,255,0.16);
-    }
-
-    .scan-btn.alt:hover {
-      background: rgba(255,255,255,0.16);
-    }
-
-    .scan-btn.white {
-      background: var(--white);
-      color: var(--black);
-      border-color: rgba(0,0,0,0.08);
-    }
-
-    .scan-btn.white:hover {
-      background: #f2f2f2;
     }
 
     .hero-pill {
@@ -131,75 +108,6 @@
       font-size: 14px;
       font-weight: 700;
       white-space: nowrap;
-    }
-
-    .hero-actions-panel {
-      margin-top: 24px;
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 18px;
-    }
-
-    .hero-card {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 22px;
-      padding: 20px;
-      backdrop-filter: blur(8px);
-    }
-
-    .hero-card h3 {
-      margin: 0 0 10px;
-      font-size: 22px;
-      color: var(--white);
-    }
-
-    .hero-card p {
-      margin: 0 0 16px;
-      color: rgba(255,255,255,0.82);
-      line-height: 1.55;
-      font-size: 14px;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .mini-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .mini-workflow {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 16px;
-      padding: 14px 16px;
-    }
-
-    .mini-workflow .mini-label {
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--gold-soft);
-      margin-bottom: 8px;
-    }
-
-    .mini-workflow .mini-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--white);
-      margin-bottom: 6px;
-    }
-
-    .mini-workflow .mini-copy {
-      font-size: 13px;
-      line-height: 1.45;
-      color: rgba(255,255,255,0.76);
     }
 
     .page {
@@ -240,32 +148,6 @@
       font-size: 22px;
       font-weight: 700;
       color: var(--black);
-    }
-
-    .resume-banner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 18px 20px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(201,162,39,0.12), rgba(255,255,255,0.92));
-      border: 1px solid rgba(201,162,39,0.28);
-      box-shadow: var(--shadow);
-      margin-bottom: 24px;
-    }
-
-    .resume-banner-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: var(--black);
-    }
-
-    .resume-banner-copy {
-      font-size: 14px;
-      line-height: 1.5;
-      color: var(--gray-3);
     }
 
     .layout {
@@ -443,10 +325,8 @@
       color: var(--gray-3);
     }
 
-    @media (max-width: 1100px) {
-      .hero-actions-panel {
-        grid-template-columns: 1fr;
-      }
+    .hidden {
+      display: none !important;
     }
 
     @media (max-width: 980px) {
@@ -461,15 +341,6 @@
       .provider-row {
         grid-template-columns: 1fr;
       }
-
-      .mini-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .resume-banner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
     }
 
     @media (max-width: 760px) {
@@ -480,7 +351,6 @@
       .hero-right {
         width: 100%;
         justify-content: flex-start;
-        max-width: 100%;
       }
 
       .brand-block h1 {
@@ -509,80 +379,18 @@
         <div class="brand-block">
           <div class="eyebrow">Texas Ponce Law, PLLC</div>
           <h1>Demand Portal</h1>
-          <p>Build polished demand letters in a clean waterfall workflow with branded presentation, intake automation, scanner support, and downloadable DOCX output.</p>
+          <p>Build polished demand letters in a clean waterfall workflow with branded presentation and downloadable DOCX output.</p>
         </div>
 
         <div class="hero-right">
-          <a href="/intake-step-1" class="scan-btn">Start Intake Flow</a>
-
-          {% if session.get("intake_step4") %}
-            <a href="/intake-review" class="scan-btn white">Resume Intake</a>
-          {% elif session.get("intake_step3") %}
-            <a href="/intake-step-4" class="scan-btn white">Resume Intake</a>
-          {% elif session.get("intake_step2") %}
-            <a href="/intake-step-3" class="scan-btn white">Resume Intake</a>
-          {% elif session.get("intake_step1") %}
-            <a href="/intake-step-2" class="scan-btn white">Resume Intake</a>
-          {% endif %}
-
-          <a href="/scan-documents" class="scan-btn alt">Scan Documents</a>
+          <a href="/scan-documents" class="scan-btn">Scan Documents</a>
           <div class="hero-pill">Black / Gold Internal Workflow</div>
-        </div>
-      </div>
-
-      <div class="hero-actions-panel">
-        <div class="hero-card">
-          <h3>Workflow Command Center</h3>
-          <p>Use the guided intake for structured case buildout, or use the main demand form below for direct drafting. Scanner access remains available from the top-right action bar.</p>
-
-          <div class="button-row" style="margin-top: 6px;">
-            <div class="hero-pill">Guided intake and scanner tools are available above.</div>
-          </div>
-        </div>
-
-        <div class="mini-grid">
-          <div class="mini-workflow">
-            <div class="mini-label">Intake Flow</div>
-            <div class="mini-title">Step 1 → Step 4</div>
-            <div class="mini-copy">Facts of loss, medical extraction, treatment packaging, and demand positioning in one guided flow.</div>
-          </div>
-
-          <div class="mini-workflow">
-            <div class="mini-label">Direct Build</div>
-            <div class="mini-title">Main Demand Form</div>
-            <div class="mini-copy">Use the full generator below any time you want to draft manually without going through intake first.</div>
-          </div>
         </div>
       </div>
     </div>
   </section>
 
   <div class="page">
-    {% if session.get("intake_step1") or session.get("intake_step2") or session.get("intake_step3") or session.get("intake_step4") %}
-      <div class="resume-banner">
-        <div>
-          <div class="resume-banner-title">Intake Session Detected</div>
-          <div class="resume-banner-copy">
-            A case intake is already in progress. You can resume the guided intake flow or continue building directly in the demand generator below.
-          </div>
-        </div>
-
-        <div class="action-row" style="margin-top:0;">
-          <a href="/intake-step-1" class="button-like gold-btn">Restart Intake</a>
-
-          {% if session.get("intake_step4") %}
-            <a href="/intake-review" class="button-like">Resume Current Step</a>
-          {% elif session.get("intake_step3") %}
-            <a href="/intake-step-4" class="button-like">Resume Current Step</a>
-          {% elif session.get("intake_step2") %}
-            <a href="/intake-step-3" class="button-like">Resume Current Step</a>
-          {% elif session.get("intake_step1") %}
-            <a href="/intake-step-2" class="button-like">Resume Current Step</a>
-          {% endif %}
-        </div>
-      </div>
-    {% endif %}
-
     <div class="summary-strip">
       <div class="summary-card">
         <div class="label">Demand Type</div>
@@ -742,7 +550,7 @@
   </div>
 
   <script>
-    const scannedData = {{ scanned_data | default(None) | tojson }};
+    const scannedData = {{ scanned_data | tojson if scanned_data else 'null' }};
   </script>
 
   <script>
@@ -829,19 +637,6 @@
 
       if (scannedData.treatment_summary) {
         document.getElementById('treatment_summary').value = scannedData.treatment_summary;
-      }
-
-      if (scannedData.non_economic_damages) {
-        document.getElementById('non_economic_damages').value = scannedData.non_economic_damages;
-      }
-
-      if (scannedData.multiplier) {
-        document.getElementById('multiplier').value = scannedData.multiplier;
-      }
-
-      if (scannedData.policy_limit_demand) {
-        document.getElementById('policy_limit_demand').checked =
-          ['yes', 'on', 'true', '1'].includes(String(scannedData.policy_limit_demand).toLowerCase());
       }
 
       if (Array.isArray(scannedData.providers) && scannedData.providers.length) {

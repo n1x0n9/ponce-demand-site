@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ponce Demand Portal - Step 1</title>
+  <style>
+    :root {
+      --gold: #c9a227;
+      --gold-soft: #e3c968;
+      --gold-dark: #9f7f1c;
+      --black: #090909;
+      --white: #ffffff;
+      --gray: #f5f5f5;
+      --border: #d9d9d9;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: #111111;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 24px 50px;
+    }
+
+    .topbar {
+      background: var(--black);
+      color: var(--gold-soft);
+      padding: 18px 24px;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .step-label {
+      margin: 18px 0 22px;
+      color: var(--gold-dark);
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--white);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: var(--black);
+      font-size: 22px;
+    }
+
+    .subtext {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #222;
+    }
+
+    .field input[type="text"],
+    .field input[type="file"],
+    .field textarea {
+      width: 100%;
+      border: 1px solid #cfcfcf;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 180px;
+      line-height: 1.45;
+    }
+
+    .preview-box textarea {
+      min-height: 290px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--black);
+    }
+
+    .btn-black {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .flash {
+      background: #fff8df;
+      border: 1px solid #ead27a;
+      color: #5a4700;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">Ponce Demand Portal</div>
+
+  <div class="page">
+    <div class="step-label">Step 1 · Facts of Loss and Liability Builder</div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="flash">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <h2>Upload Crash Materials</h2>
+      <div class="subtext">
+        Upload the crash narrative screenshot and diagram screenshot. You can also paste narrative text directly if needed.
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" action="/intake-step-1">
+        <input type="hidden" name="action" value="generate_preview">
+
+        <div class="grid">
+          <div>
+            <div class="field">
+              <label>Loss Date</label>
+              <input type="text" name="loss_date" value="{{ loss_date or '' }}" placeholder="MM/DD/YYYY">
+            </div>
+
+            <div class="field">
+              <label>Crash Narrative Screenshot</label>
+              <input type="file" name="crash_narrative_file" accept=".png,.jpg,.jpeg,.webp,.pdf,.docx">
+            </div>
+
+            <div class="field">
+              <label>Crash Diagram Screenshot</label>
+              <input type="file" name="crash_diagram_file" accept=".png,.jpg,.jpeg,.webp,.pdf,.docx">
+            </div>
+
+            <div class="field">
+              <label>Manual Narrative / Backup Text</label>
+              <textarea name="narrative_text" placeholder="Paste crash report narrative here if needed...">{{ extracted_text or '' }}</textarea>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn btn-gold">Generate Preview</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="field preview-box">
+              <label>Generated Facts of Loss</label>
+              <textarea id="facts_of_loss">{{ facts_of_loss or '' }}</textarea>
+            </div>
+
+            <div class="field preview-box">
+              <label>Generated Liability</label>
+              <textarea id="liability">{{ liability or '' }}</textarea>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Approve Step 1</h2>
+      <div class="subtext">
+        Review and edit the generated language, then approve it to carry forward into the next step.
+      </div>
+
+      <form method="POST" action="/intake-step-1" id="approveForm">
+        <input type="hidden" name="action" value="approve_apply">
+        <input type="hidden" name="loss_date" value="{{ loss_date or '' }}">
+        <input type="hidden" name="extracted_text" value="{{ extracted_text or '' }}">
+        <input type="hidden" name="facts_of_loss" id="facts_of_loss_hidden">
+        <input type="hidden" name="liability" id="liability_hidden">
+
+        <div class="actions">
+          <button type="submit" class="btn btn-black">Approve and Continue to Step 2</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const factsVisible = document.getElementById('facts_of_loss');
+    const liabilityVisible = document.getElementById('liability');
+    const factsHidden = document.getElementById('facts_of_loss_hidden');
+    const liabilityHidden = document.getElementById('liability_hidden');
+    const approveForm = document.getElementById('approveForm');
+
+    function syncStep1ApprovalFields() {
+      factsHidden.value = factsVisible ? factsVisible.value : '';
+      liabilityHidden.value = liabilityVisible ? liabilityVisible.value : '';
+    }
+
+    syncStep1ApprovalFields();
+
+    if (factsVisible) {
+      factsVisible.addEventListener('input', syncStep1ApprovalFields);
+      factsVisible.addEventListener('change', syncStep1ApprovalFields);
+    }
+
+    if (liabilityVisible) {
+      liabilityVisible.addEventListener('input', syncStep1ApprovalFields);
+      liabilityVisible.addEventListener('change', syncStep1ApprovalFields);
+    }
+
+    if (approveForm) {
+      approveForm.addEventListener('submit', function () {
+        syncStep1ApprovalFields();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,19 +1,18 @@
-
 from flask import Flask, render_template, request, send_file, jsonify, redirect, flash, session, url_for
 from docx import Document
 from docx.shared import Pt
 from reportlab.lib.pagesizes import LETTER
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
-from document_scanner import extract_text_from_file, simple_extract_data, build_facts_of_loss, build_liability_section
+from document_scanner import extract_text_from_file, simple_extract_data
 import io
 import os
 import re
-import json
 import zipfile
-from datetime import datetime
 from werkzeug.utils import secure_filename
 
+from werkzeug.utils import secure_filename
 try:
     from pypdf import PdfReader, PdfWriter
 except Exception:
@@ -63,7 +62,6 @@ def parse_money(value):
 
 def money(value):
     return "${:,.2f}".format(value or 0.0)
-
 
 def unique_join_paragraphs(existing, new_text):
     existing = clean_text(existing)
@@ -157,253 +155,6 @@ def get_logo_path():
     ])
 
 
-def _clean_list(items):
-    cleaned = []
-    seen = set()
-
-    for item in items or []:
-        line = re.sub(r"\s+", " ", str(item or "")).strip(" -•\n\t")
-        if not line:
-            continue
-        key = line.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        cleaned.append(line)
-
-    return cleaned
-
-
-def _blank_step2_structured():
-    return {
-        "provider_list": [],
-        "treatment_chronology": [],
-        "diagnoses_by_body_region": {
-            "head": [],
-            "neck": [],
-            "back": [],
-            "shoulder": [],
-            "arm_hand": [],
-            "hip_pelvis": [],
-            "leg_knee": [],
-            "other": []
-        },
-        "objective_findings": [],
-        "imaging_summary": [],
-        "high_value_indicators": [],
-        "treatment_gaps": [],
-        "negotiation_text": ""
-    }
-
-
-def _extract_step2_structured_from_text(text, extracted_data=None):
-    structured = _blank_step2_structured()
-    extracted_data = extracted_data or {}
-    review = extracted_data.get("review", {}) or {}
-
-    raw_providers = extracted_data.get("providers", []) or []
-    provider_names = []
-
-    for provider in raw_providers:
-        if isinstance(provider, dict):
-            name = clean_text(provider.get("name") or provider.get("provider_name"))
-            if name:
-                provider_names.append(name)
-        else:
-            name = clean_text(provider)
-            if name:
-                provider_names.append(name)
-
-    review_provider_text = clean_text(review.get("providers_text", ""))
-    if review_provider_text:
-        provider_names.extend([line.strip("-• ").strip() for line in review_provider_text.splitlines() if line.strip()])
-
-    structured["provider_list"] = _clean_list(provider_names)
-
-    chronology_lines = []
-    review_chronology = clean_text(review.get("chronology_text", ""))
-    if review_chronology:
-        chronology_lines.extend([line.strip() for line in review_chronology.splitlines() if line.strip()])
-
-    date_pattern = re.compile(
-        r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|"
-        r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2},?\s+\d{2,4})\b",
-        re.IGNORECASE
-    )
-
-    for line in text.splitlines():
-        line = clean_text(line)
-        if line and date_pattern.search(line) and len(line) <= 240:
-            chronology_lines.append(line)
-
-    structured["treatment_chronology"] = _clean_list(chronology_lines)[:30]
-
-    objective_lines = []
-    imaging_lines = []
-    high_value_lines = []
-    gap_lines = []
-
-    review_objective = clean_text(review.get("objective_findings_text", ""))
-    if review_objective:
-        objective_lines.extend([line.strip() for line in review_objective.splitlines() if line.strip()])
-
-    review_imaging = clean_text(review.get("imaging_summary_text", ""))
-    if review_imaging:
-        imaging_lines.extend([line.strip() for line in review_imaging.splitlines() if line.strip()])
-
-    review_high_value = clean_text(review.get("high_value_text", ""))
-    if review_high_value:
-        high_value_lines.extend([line.strip() for line in review_high_value.splitlines() if line.strip()])
-
-    review_gaps = clean_text(review.get("treatment_gaps", ""))
-    if review_gaps:
-        gap_lines.extend([line.strip() for line in review_gaps.splitlines() if line.strip()])
-
-    diagnosis_rules = {
-        "head": ["head", "headache", "concussion", "migraine"],
-        "neck": ["neck", "cervical"],
-        "back": ["back", "thoracic", "lumbar", "spasm", "radiculopathy"],
-        "shoulder": ["shoulder", "rotator cuff"],
-        "arm_hand": ["arm", "elbow", "wrist", "hand"],
-        "hip_pelvis": ["hip", "pelvis", "pelvic"],
-        "leg_knee": ["leg", "knee", "ankle", "foot"]
-    }
-
-    for raw_line in text.splitlines():
-        line = clean_text(raw_line)
-        if not line or len(line) > 260:
-            continue
-
-        low = line.lower()
-
-        if any(term in low for term in ["mri", "x-ray", "xray", "ct", "scan", "ultrasound"]):
-            imaging_lines.append(line)
-
-        if any(term in low for term in [
-            "reduced range of motion", "limited range of motion", "spasm", "tenderness",
-            "positive", "disc herniation", "disc bulge", "tear", "radiculopathy",
-            "effusion", "fracture", "edema"
-        ]):
-            objective_lines.append(line)
-
-        if any(term in low for term in [
-            "surgery", "surgical", "injection", "epidural", "facet", "ablation",
-            "specialist", "orthopedic", "neurology", "pain management", "mri",
-            "herniation", "tear", "permanent", "future care", "ongoing"
-        ]):
-            high_value_lines.append(line)
-
-        if "gap" in low and "treatment" in low:
-            gap_lines.append(line)
-
-        if any(term in low for term in ["diagnosis", "diagnoses", "impression", "assessment", "pain in", "complains of"]):
-            matched = False
-            for region, keywords in diagnosis_rules.items():
-                if any(keyword in low for keyword in keywords):
-                    structured["diagnoses_by_body_region"][region].append(line)
-                    matched = True
-            if not matched:
-                structured["diagnoses_by_body_region"]["other"].append(line)
-
-    structured["objective_findings"] = _clean_list(objective_lines)[:25]
-    structured["imaging_summary"] = _clean_list(imaging_lines)[:20]
-    structured["high_value_indicators"] = _clean_list(high_value_lines)[:20]
-    structured["treatment_gaps"] = _clean_list(gap_lines)[:12]
-
-    for key in structured["diagnoses_by_body_region"]:
-        structured["diagnoses_by_body_region"][key] = _clean_list(structured["diagnoses_by_body_region"][key])[:15]
-
-    return structured
-
-
-def _build_step2_preview_text(structured):
-    sections = []
-
-    if structured.get("provider_list"):
-        sections.append("PROVIDER LIST\n" + "\n".join(f"- {item}" for item in structured["provider_list"]))
-
-    if structured.get("treatment_chronology"):
-        sections.append("TREATMENT CHRONOLOGY\n" + "\n".join(f"- {item}" for item in structured["treatment_chronology"]))
-
-    diagnoses_block = []
-    for region, items in structured.get("diagnoses_by_body_region", {}).items():
-        if items:
-            diagnoses_block.append(region.replace("_", " ").title() + ":")
-            diagnoses_block.extend([f"- {item}" for item in items])
-
-    if diagnoses_block:
-        sections.append("DIAGNOSES BY BODY REGION\n" + "\n".join(diagnoses_block))
-
-    if structured.get("objective_findings"):
-        sections.append("OBJECTIVE FINDINGS\n" + "\n".join(f"- {item}" for item in structured["objective_findings"]))
-
-    if structured.get("imaging_summary"):
-        sections.append("IMAGING SUMMARY\n" + "\n".join(f"- {item}" for item in structured["imaging_summary"]))
-
-    if structured.get("high_value_indicators"):
-        sections.append("HIGH-VALUE INDICATORS\n" + "\n".join(f"- {item}" for item in structured["high_value_indicators"]))
-
-    if structured.get("treatment_gaps"):
-        sections.append("TREATMENT GAPS\n" + "\n".join(f"- {item}" for item in structured["treatment_gaps"]))
-
-    return "\n\n".join(sections).strip()
-
-
-def _build_step2_negotiation_text(structured):
-    lines = []
-    lines.append("MEDICAL RECORDS NEGOTIATION SUMMARY")
-    lines.append("")
-
-    if structured.get("provider_list"):
-        lines.append("Providers")
-        for item in structured["provider_list"]:
-            lines.append(f"- {item}")
-        lines.append("")
-
-    if structured.get("treatment_chronology"):
-        lines.append("Treatment Chronology")
-        for item in structured["treatment_chronology"]:
-            lines.append(f"- {item}")
-        lines.append("")
-
-    diagnoses = structured.get("diagnoses_by_body_region", {})
-    has_diag = any(diagnoses.get(key) for key in diagnoses)
-    if has_diag:
-        lines.append("Diagnoses by Body Region")
-        for region, items in diagnoses.items():
-            if items:
-                lines.append(region.replace("_", " ").title())
-                for item in items:
-                    lines.append(f"- {item}")
-        lines.append("")
-
-    if structured.get("objective_findings"):
-        lines.append("Objective Findings")
-        for item in structured["objective_findings"]:
-            lines.append(f"- {item}")
-        lines.append("")
-
-    if structured.get("imaging_summary"):
-        lines.append("Imaging Summary")
-        for item in structured["imaging_summary"]:
-            lines.append(f"- {item}")
-        lines.append("")
-
-    if structured.get("high_value_indicators"):
-        lines.append("High-Value Indicators")
-        for item in structured["high_value_indicators"]:
-            lines.append(f"- {item}")
-        lines.append("")
-
-    if structured.get("treatment_gaps"):
-        lines.append("Treatment Gaps")
-        for item in structured["treatment_gaps"]:
-            lines.append(f"- {item}")
-        lines.append("")
-
-    return "\n".join(lines).strip()
-
-
 def build_letter_data(form):
     recipient_name = clean_text(form.get("recipient_name"))
     adjuster_name = clean_text(form.get("adjuster_name"))
@@ -415,7 +166,7 @@ def build_letter_data(form):
     facts_of_loss = clean_facts_of_loss(form.get("facts_of_loss"))
     treatment_text = clean_text(form.get("treatment_summary"))
     non_economic_text = clean_text(form.get("non_economic_damages"))
-    damages_explanation = clean_text(form.get("bottom_damages_explanation") or form.get("damages_explanation"))
+    damages_explanation = clean_text(form.get("damages_explanation"))
 
     provider_names = form.getlist("provider_name[]")
     provider_amounts = form.getlist("provider_amount[]")
@@ -467,10 +218,14 @@ def build_letter_data(form):
     economic_total = medical_expenses + lost_wages
     suggested_amount = economic_total * multiplier_num
 
-    policy_limit_checked = form.get("policy_limit_demand") in ["yes", "on", "true", "1"]
+    policy_limit_checked = form.get("policy_limit_demand") == "yes"
 
     if facts_of_loss:
-        liability_text = build_liability_section(facts_of_loss)
+        liability_text = (
+            "Based on the facts described above, liability for this collision rests with your insured. "
+            "The at-fault driver failed to exercise ordinary care in the operation of the vehicle, and "
+            "that negligence was the direct and proximate cause of our client's injuries and damages."
+        )
     else:
         liability_text = (
             "Liability is clear. The available facts show that the collision was caused by the negligence "
@@ -617,7 +372,6 @@ def build_docx(letter_data):
 
     return document
 
-
 def build_content_pdf(letter_data):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=LETTER)
@@ -630,7 +384,7 @@ def build_content_pdf(letter_data):
     bottom_margin = 70
     usable_width = page_width - left_margin - right_margin
     y = page_height - first_page_top_margin
-
+   
     c.setFillColorRGB(1, 1, 1)
     c.rect(45, 20, 240, 75, fill=1, stroke=0)
     c.setFillColorRGB(0, 0, 0)
@@ -693,7 +447,7 @@ def build_content_pdf(letter_data):
         c.setLineWidth(0.3)
         c.line(left_margin, y, page_width - right_margin, y)
         y -= 12
-
+       
     def draw_provider_table(providers):
         nonlocal y
         col1 = left_margin
@@ -809,7 +563,6 @@ def build_content_pdf(letter_data):
     buffer.seek(0)
     return buffer
 
-
 def apply_letterhead_overlay(content_pdf_bytes):
     letterhead_path = get_letterhead_pdf_path()
 
@@ -843,7 +596,6 @@ def apply_letterhead_overlay(content_pdf_bytes):
     except Exception as e:
         print("PDF overlay error:", e)
         return content_pdf_bytes
-
 
 def build_pdf_bytes(letter_data):
     content_buffer = build_content_pdf(letter_data)
@@ -918,30 +670,6 @@ def generate():
         as_attachment=True,
         download_name=zip_filename,
         mimetype="application/zip"
-    )
-
-
-@app.route("/generate_docx", methods=["POST"])
-def generate_docx():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    letter_data = build_letter_data(request.form)
-
-    document = build_docx(letter_data)
-    docx_stream = io.BytesIO()
-    document.save(docx_stream)
-    docx_stream.seek(0)
-
-    demand_label = "Policy_Limits_Demand" if letter_data["policy_limit_checked"] else "Settlement_Demand"
-    client_part = safe_filename(letter_data["client_name"] or "Client")
-    docx_filename = f"{client_part}_{demand_label}.docx"
-
-    return send_file(
-        docx_stream,
-        as_attachment=True,
-        download_name=docx_filename,
-        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
 
@@ -1062,7 +790,6 @@ def scan_documents():
 
     return render_template("upload_scan.html")
 
-
 @app.route("/scan-review", methods=["GET", "POST"])
 def scan_review():
     if not session.get("logged_in"):
@@ -1101,321 +828,25 @@ def scan_review():
 
     return render_template("scan_review.html", data=data)
 
-
 @app.route("/intake-step-1", methods=["GET", "POST"])
 def intake_step_1():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    facts_of_loss = ""
-    liability = ""
-    extracted_text = ""
-    loss_date = ""
-
-    saved = session.get("intake_step1", {})
-    if saved:
-        facts_of_loss = saved.get("facts_of_loss", "")
-        liability = saved.get("liability", "")
-        extracted_text = saved.get("extracted_text", "")
-        loss_date = saved.get("loss_date", "")
-
-    if request.method == "POST":
-        action = request.form.get("action", "")
-
-        if action == "generate_preview":
-            combined_text_parts = []
-
-            narrative_text = clean_text(request.form.get("narrative_text", ""))
-            if narrative_text:
-                combined_text_parts.append(narrative_text)
-
-            for field_name in ["crash_narrative_file", "crash_diagram_file"]:
-                file = request.files.get(field_name)
-                if file and file.filename:
-                    filename = secure_filename(file.filename)
-                    save_path = os.path.join(UPLOAD_FOLDER, filename)
-                    file.save(save_path)
-
-                    extracted = extract_text_from_file(save_path)
-                    if extracted:
-                        combined_text_parts.append(extracted)
-
-            extracted_text = clean_text("\n\n".join(combined_text_parts))
-            loss_date = clean_text(request.form.get("loss_date", ""))
-
-            facts_of_loss = build_facts_of_loss(extracted_text, loss_date)
-            if not facts_of_loss and extracted_text:
-                facts_of_loss = extracted_text[:900].strip()
-
-            facts_of_loss = clean_facts_of_loss(facts_of_loss)
-            liability = build_liability_section(facts_of_loss)
-
-        elif action == "approve_apply":
-            facts_of_loss = clean_facts_of_loss(request.form.get("facts_of_loss", ""))
-            liability = clean_text(request.form.get("liability", ""))
-            extracted_text = clean_text(request.form.get("extracted_text", ""))
-            loss_date = clean_text(request.form.get("loss_date", ""))
-
-            session["intake_step1"] = {
-                "facts_of_loss": facts_of_loss,
-                "liability": liability,
-                "extracted_text": extracted_text,
-                "loss_date": loss_date
-            }
-
-            flash("Step 1 approved and saved.")
-            return redirect(url_for("intake_step_2"))
-
-    return render_template(
-        "intake_step1.html",
-        facts_of_loss=facts_of_loss,
-        liability=liability,
-        extracted_text=extracted_text,
-        loss_date=loss_date
-    )
+    return render_template("intake_step1.html")
 
 @app.route("/intake-step-2", methods=["GET", "POST"])
 def intake_step_2():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    if "intake_step1" not in session:
-        flash("Please complete Step 1 first.")
-        return redirect(url_for("intake_step_1"))
-
-    saved = session.get("intake_step2", {})
-    raw_text = saved.get("raw_text", "")
-    preview_text = saved.get("preview_text", "")
-    structured = saved.get("structured", _blank_step2_structured())
-
-    if request.method == "POST":
-        action = request.form.get("action", "")
-
-        if action == "generate_preview":
-            combined_text_parts = []
-
-            manual_text = clean_text(request.form.get("manual_medical_text", ""))
-            if manual_text:
-                combined_text_parts.append(manual_text)
-
-            files = request.files.getlist("medical_files")
-
-            for file in files:
-                if file and file.filename:
-                    filename = secure_filename(file.filename)
-                    lower_name = filename.lower()
-
-                    if not (lower_name.endswith(".pdf") or lower_name.endswith(".docx")):
-                        continue
-
-                    unique_name = f"step2_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}_{filename}"
-                    filepath = os.path.join(UPLOAD_FOLDER, unique_name)
-                    file.save(filepath)
-
-                    try:
-                        text = extract_text_from_file(filepath)
-                        if text:
-                            combined_text_parts.append(text)
-                    finally:
-                        if os.path.exists(filepath):
-                            os.remove(filepath)
-
-            raw_text = clean_text("\n\n".join(combined_text_parts))
-            extracted_data = simple_extract_data(raw_text) if raw_text else {}
-            structured = _extract_step2_structured_from_text(raw_text, extracted_data)
-            preview_text = _build_step2_preview_text(structured)
-            structured["negotiation_text"] = _build_step2_negotiation_text(structured)
-
-            session["intake_step2"] = {
-                "raw_text": raw_text,
-                "preview_text": preview_text,
-                "structured": structured
-            }
-
-        elif action == "approve_apply":
-            raw_text = clean_text(request.form.get("raw_text", ""))
-            preview_text = clean_text(request.form.get("preview_text", ""))
-            negotiation_text = clean_text(request.form.get("negotiation_text", ""))
-
-            structured_json = clean_text(request.form.get("structured_json", ""))
-            try:
-                structured = json.loads(structured_json) if structured_json else _blank_step2_structured()
-            except Exception:
-                structured = _blank_step2_structured()
-
-            structured["negotiation_text"] = negotiation_text
-
-            session["intake_step2"] = {
-                "raw_text": raw_text,
-                "preview_text": preview_text,
-                "structured": structured
-            }
-
-            flash("Step 2 approved and saved.")
-            return redirect(url_for("intake_step_3"))
-
-    return render_template(
-        "intake_step2.html",
-        raw_text=raw_text,
-        preview_text=preview_text,
-        structured=structured,
-        structured_json=json.dumps(structured)
-    )
-
-@app.route("/intake-step-2-download", methods=["POST"])
-def intake_step_2_download():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    negotiation_text = clean_text(request.form.get("negotiation_text", ""))
-    if not negotiation_text:
-        negotiation_text = "No negotiation summary available."
-
-    document = Document()
-    style = document.styles["Normal"]
-    style.font.name = "Times New Roman"
-    style.font.size = Pt(11)
-
-    for line in negotiation_text.splitlines():
-        add_paragraph(document, line, font_size=11, space_after=4)
-
-    docx_stream = io.BytesIO()
-    document.save(docx_stream)
-    docx_stream.seek(0)
-
-    return send_file(
-        docx_stream,
-        as_attachment=True,
-        download_name="Medical_Records_Negotiation_Summary.docx",
-        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
+    return render_template("intake_step2.html")
 
 @app.route("/intake-step-3", methods=["GET", "POST"])
 def intake_step_3():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    if "intake_step2" not in session:
-        return redirect(url_for("intake_step_2"))
-
-    step2 = session.get("intake_step2", {})
-    structured = step2.get("structured", {})
-
-    data = session.get("intake_step3", {
-        "treatment_summary": structured.get("negotiation_text", "") or step2.get("preview_text", ""),
-        "providers": [{"name": p, "amount": ""} for p in structured.get("provider_list", [])]
-    })
-
-    if request.method == "POST":
-        data["treatment_summary"] = request.form.get("treatment_summary", "")
-
-        provider_names = request.form.getlist("provider_name[]")
-        provider_amounts = request.form.getlist("provider_amount[]")
-
-        providers = []
-        for n, a in zip(provider_names, provider_amounts):
-            if n or a:
-                providers.append({"name": n, "amount": a})
-
-        data["providers"] = providers
-        session["intake_step3"] = data
-
-        return redirect(url_for("intake_step_4"))
-
-    return render_template(
-        "intake_step3.html",
-        treatment_summary=data.get("treatment_summary", ""),
-        providers=data.get("providers", [])
-    )
-
+    return render_template("intake_step3.html")
 
 @app.route("/intake-step-4", methods=["GET", "POST"])
 def intake_step_4():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
+    return render_template("intake_step4.html")
 
-    if "intake_step3" not in session:
-        return redirect(url_for("intake_step_3"))
-
-    step3 = session.get("intake_step3", {})
-    providers = step3.get("providers", [])
-
-    provider_total = 0.0
-    for p in providers:
-        try:
-            provider_total += float(str(p.get("amount", "")).replace("$", "").replace(",", "") or 0)
-        except Exception:
-            pass
-
-    data = session.get("intake_step4", {
-        "non_economic": "",
-        "medical_expenses": "{:.2f}".format(provider_total) if provider_total else "0.00",
-        "lost_wages": "0.00",
-        "multiplier": "3",
-        "policy_limit": False
-    })
-
-    if request.method == "POST":
-        data["non_economic"] = request.form.get("non_economic", "")
-        data["medical_expenses"] = request.form.get("medical_expenses", "0")
-        data["lost_wages"] = request.form.get("lost_wages", "0")
-        data["multiplier"] = request.form.get("multiplier", "3")
-        data["policy_limit"] = request.form.get("policy_limit") == "on"
-
-        session["intake_step4"] = data
-        return redirect(url_for("intake_review"))
-
-    return render_template(
-        "intake_step4.html",
-        non_economic=data.get("non_economic", ""),
-        medical_expenses=data.get("medical_expenses", "0.00"),
-        lost_wages=data.get("lost_wages", "0.00"),
-        multiplier=data.get("multiplier", "3"),
-        policy_limit=data.get("policy_limit", False),
-        providers=providers
-    )
-
-
-@app.route("/intake-review", methods=["GET"])
+@app.route("/intake-review", methods=["GET", "POST"])
 def intake_review():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    return render_template(
-        "intake_review.html",
-        step1=session.get("intake_step1", {}),
-        step2=session.get("intake_step2", {}),
-        step3=session.get("intake_step3", {}),
-        step4=session.get("intake_step4", {})
-    )
-
-
-@app.route("/finalize-intake", methods=["POST"])
-def finalize_intake():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    step1 = session.get("intake_step1", {})
-    step3 = session.get("intake_step3", {})
-    step4 = session.get("intake_step4", {})
-
-    applied = {
-        "client_name": "",
-        "claim_number": "",
-        "loss_date": step1.get("loss_date", ""),
-        "facts_of_loss": step1.get("facts_of_loss", ""),
-        "treatment_summary": step3.get("treatment_summary", ""),
-        "providers": step3.get("providers", []),
-        "non_economic_damages": step4.get("non_economic", ""),
-        "medical_expenses": step4.get("medical_expenses", "0"),
-        "lost_wages": step4.get("lost_wages", "0"),
-        "multiplier": step4.get("multiplier", "3"),
-        "policy_limit_demand": "yes" if step4.get("policy_limit") else ""
-    }
-
-    session["scanned_data"] = applied
-    flash("Intake flow completed and pushed to the main demand form.")
-    return redirect(url_for("index"))
+    return render_template("intake_review.html")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(debug=True)    

@@ -1,17 +1,6 @@
-import os
 import re
 from pypdf import PdfReader
 from docx import Document as DocxDocument
-
-try:
-    from PIL import Image
-except Exception:
-    Image = None
-
-try:
-    import pytesseract
-except Exception:
-    pytesseract = None
 
 
 # -----------------------------
@@ -33,25 +22,12 @@ def extract_text_from_docx(path):
     return "\n".join([p.text for p in doc.paragraphs])
 
 
-def extract_text_from_image(path):
-    if Image is None or pytesseract is None:
-        return ""
-
-    try:
-        img = Image.open(path)
-        return pytesseract.image_to_string(img) or ""
-    except Exception:
-        return ""
-
-
 def extract_text_from_file(path):
     lower = path.lower()
     if lower.endswith(".pdf"):
         return extract_text_from_pdf(path)
     if lower.endswith(".docx"):
         return extract_text_from_docx(path)
-    if lower.endswith((".png", ".jpg", ".jpeg", ".webp")):
-        return extract_text_from_image(path)
     return ""
 
 
@@ -580,49 +556,6 @@ def build_facts_of_loss(text, loss_date):
     if loss_date and loss_date not in chosen:
         return f"On or about {loss_date}, our client was involved in a motor vehicle collision caused by the negligence of the at-fault driver. {sentence_case_fix(chosen)}"
     return sentence_case_fix(chosen)
-
-
-def build_liability_section(facts_of_loss):
-    facts = clean_text(facts_of_loss)
-    if not facts:
-        return ""
-
-    lower = facts.lower()
-
-    if any(term in lower for term in ["rear-end", "rear ended", "rear-ended", "struck from behind", "hit from behind"]):
-        return (
-            "Liability is clear. Our client was lawfully operating their vehicle when they were rear-ended by the at-fault driver. "
-            "The duty to maintain a safe following distance and keep a proper lookout rests with the trailing vehicle. "
-            "The collision was caused by the negligence of the at-fault driver, and our client did nothing to contribute to this crash."
-        )
-
-    if any(term in lower for term in ["failed to yield", "failure to yield", "did not yield"]):
-        return (
-            "Liability is clear. The at-fault driver failed to yield the right-of-way and caused this collision. "
-            "Drivers have a duty to yield when required and operate their vehicles with reasonable care. "
-            "The available facts support that the at-fault driver's negligence was the direct and proximate cause of this crash."
-        )
-
-    if any(term in lower for term in ["red light", "ran the light", "ran a red light", "stop sign"]):
-        return (
-            "Liability is clear. The at-fault driver failed to obey traffic control devices and caused this collision. "
-            "Drivers must stop and yield as required by roadway controls. "
-            "The crash occurred because the at-fault driver breached that duty, and our client was not comparatively at fault."
-        )
-
-    if any(term in lower for term in ["lane change", "unsafe lane change", "merged into", "changed lanes into"]):
-        return (
-            "Liability is clear. The at-fault driver made an unsafe lane change and collided with our client's vehicle. "
-            "Motorists must ensure that any lane movement can be made safely before changing lanes. "
-            "The at-fault driver's failure to do so directly caused this collision."
-        )
-
-    return (
-        "Liability rests with the at-fault driver. Based on the facts of loss, the collision occurred because the at-fault driver "
-        "failed to operate their vehicle safely and with proper regard for surrounding traffic conditions. "
-        "Our client was not responsible for causing this crash, and the available facts support that the at-fault driver's negligence "
-        "was the direct and proximate cause of the collision and resulting damages."
-    )
 
 
 def build_clean_treatment_summary(client_name, provider_name, provider_type, dates, complaints, impression, objective_findings, exam):
